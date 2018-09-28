@@ -12,6 +12,7 @@ class WavenetLoss(Loss):
 
 	def get_required_params(self):
 		return dict(Loss.get_required_params(), **{
+			"quantization_channels": int,
 			"batch_size": int
 		})
 
@@ -22,10 +23,12 @@ class WavenetLoss(Loss):
 		channels = self.params["quantization_channels"]
 		batch_size = self.params["batch_size"]
 
-		output = input_dict["encoder_output"]["outputs"]
-		target = input_dict["encoder_output"]["target"]
+		logits = input_dict["decoder_output"]["logits"]
+		outputs = tf.squeeze(input_dict["decoder_output"]["outputs"][0], 2)
 
-		loss = tf.nn.softmax_cross_entropy_with_logits(logits=target, labels=output)
+		print(logits.get_shape(), outputs.get_shape())
+
+		loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=outputs)
 		loss = reduced_loss = tf.reduce_mean(loss)
 
 		tf.summary.scalar("loss", loss)

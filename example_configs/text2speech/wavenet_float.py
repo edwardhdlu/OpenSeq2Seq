@@ -2,18 +2,28 @@
 import tensorflow as tf
 from open_seq2seq.models import Text2SpeechWavenet
 from open_seq2seq.encoders import WavenetEncoder
+from open_seq2seq.decoders import FakeDecoder
+from open_seq2seq.losses import WavenetLoss
+from open_seq2seq.data import WavenetDataLayer
+from open_seq2seq.optimizers.lr_policies import exp_decay
 
 base_model = Text2SpeechWavenet
 
 base_params = {
 	"random_seed": 0,
-	"use_horovod": False,
+	"use_horovod": True,
 	"max_steps": 10000,
 
-	"num_gpus": 1,
-	"batch_size_per_gpu": 32,
+	"num_gpus": 2,
+	"batch_size_per_gpu": 64,
 
 	# [TODO] add logging params
+	"save_summaries_steps": 50,
+	"print_loss_steps": 1,
+	"print_samples_steps": 500,
+	"eval_steps": 500,
+	"save_checkpoint_steps": 2500,
+	"logdir": "result/wavenet-LJ-float",
 
 	"optimizer": "Adam",
 	"optimizer_params": {},
@@ -30,7 +40,7 @@ base_params = {
 	"regularizer": tf.contrib.layers.l2_regularizer,
 	"regularizer_params": {
 		"scale": 1e-6
-	}
+	},
 	"initializer": tf.contrib.layers.xavier_initializer,
 
 	"summaries": [],
@@ -39,22 +49,36 @@ base_params = {
 	"encoder_params": {
 		"layer_type": "conv1d",
 		"kernel_size": 3,
-		"stride": 1,
-		"padding": "VALID",
+		"strides": 1,
+		"padding": "SAME",
 		"blocks": 4,
 		"layers": 24,
-		"residual_channels": 512,
-		"gate_channels": 512,
-		"skip_channels": 256,
-		"output_channels": 30,
-		"quantization_channels": 256
+		"residual_channels": 64,
+		"gate_channels": 64,
+		"skip_channels": 32,
+		"output_channels": 256, # [TODO] use one channel param, change to layers_per_block
+	},
+
+	"decoder": FakeDecoder,
+
+	"loss": WavenetLoss,
+	"loss_params": {
+		"quantization_channels": 256,
+		"batch_size": 1
+	},
+
+	"data_layer": WavenetDataLayer,
+	"data_layer_params": {
+		"dataset": "LJ",
+		"num_audio_features": 80,
+		"dataset_location": "data/speech/LJSpeech/wavs/"
 	}
 }
 
 train_params = {
 	"data_layer_params": {
 		"dataset_files": [
-			"/data/speech/LJSpeech/train.csv",
+			"data/speech/LJSpeech/train.csv",
 		],
 		"shuffle": True,
 	},
@@ -63,7 +87,7 @@ train_params = {
 eval_params = {
 	"data_layer_params": {
 		"dataset_files": [
-			"/data/speech/LJSpeech/val.csv",
+			"data/speech/LJSpeech/val.csv",
 		],
 		"shuffle": False,
 	},
@@ -72,7 +96,7 @@ eval_params = {
 infer_params = {
 	"data_layer_params": {
 		"dataset_files": [
-			"/data/speech/LJSpeech/test.csv",
+			"data/speech/LJSpeech/test.csv",
 		],
 		"shuffle": False,
 	},

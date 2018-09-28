@@ -1,4 +1,7 @@
 # Copyright (c) 2018 NVIDIA Corporation
+import tensorflow as tf
+
+from .encoder_decoder import EncoderDecoderModel
 
 class Text2SpeechWavenet(EncoderDecoderModel):
 	# [TODO] add logging info
@@ -20,3 +23,4 @@ class Text2SpeechWavenet(EncoderDecoderModel):
 
 	def finalize_evaluation(self, results_per_batch, training_step=None):
 		return {}
+		
