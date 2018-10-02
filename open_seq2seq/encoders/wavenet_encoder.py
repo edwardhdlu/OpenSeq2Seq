@@ -1,120 +1,14 @@
 # Copyright (c) 2018 NVIDIA Corporation
 
 import tensorflow as tf
-from open_seq2seq.parts.cnns.conv_blocks import conv_actv
+from math import ceil
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
 from .encoder import Encoder
 
-
-def wavenet_conv_block(layer_type, name, inputs, condition, residual_channels, gate_channels, skip_channels, kernel_size, activation_fn, 
-	strides, padding, regularizer, training, data_format, dilation, causal_convs=False, batch_norm=False, local_conditioning=False):
-
-	# split input and conditioning in two
-	input_shape = inputs.get_shape().as_list()
-	input_filter = inputs[:, :, 0:int(input_shape[2] / 2)]
-	input_gate = inputs[:, :, int(input_shape[2] / 2):]
-
-	conv_filter = conv_actv(
-		layer_type=layer_type,
-		name="conv_filter_" + name,
-		inputs=input_filter,
-		filters=gate_channels,
-		kernel_size=kernel_size,
-		activation_fn=None,
-		strides=strides,
-		padding=padding,
-		regularizer=regularizer,
-		training=training,
-		data_format=data_format,
-		dilation=dilation
-	)
-
-	conv_gate = conv_actv(
-		layer_type=layer_type,
-		name="conv_gate_" + name,
-		inputs=input_gate,
-		filters=gate_channels,
-		kernel_size=kernel_size,
-		activation_fn=None,
-		strides=strides,
-		padding=padding,
-		regularizer=regularizer,
-		training=training,
-		data_format=data_format,
-		dilation=dilation
-	)
-
-	if causal_convs:
-		conv_filter = tf.slice(conv_filter, [0, 0, 0], [-1, tf.shape(input_filter)[1] - (gate_channels - 1), -1])
-		conv_gate = tf.slice(conv_gate, [0, 0, 0], [-1, tf.shape(input_gate)[1] - (gate_channels - 1), -1])
-
-	if local_conditioning:
-		input_shape_condition = condition.get_shape().as_list()
-		input_filter_condition = condition[:, :, 0:int(input_shape_condition[2] / 2)]
-		input_gate_condition = condition[:, :, int(input_shape_condition[2] / 2):]
-
-		input_filter_condition = tf.expand_dims(input_filter_condition, 1)
-		input_gate_condition = tf.expand_dims(input_gate_condition, 1)
-
-		conv_filter_condition = tf.layers.conv2d_transpose(
-			name="conv_filter_condition_" + name,
-			inputs=input_filter_condition,
-			filters=gate_channels,
-			kernel_size=1, # 1x1 convolution
-			strides=(1, 256), # scale factor
-			kernel_regularizer=regularizer,
-			data_format=data_format
-		)
-
-		conv_gate_condition = tf.layers.conv2d_transpose(
-			name="conv_gate_condition" + name,
-			inputs=input_gate_condition,
-			filters=gate_channels,
-			kernel_size=1, # 1x1 convolution
-			strides=(1, 256), # scale factor
-			kernel_regularizer=regularizer,
-			data_format=data_format
-		)
-
-		conv_filter_condition = tf.squeeze(conv_filter_condition, [1])
-		conv_filter = tf.pad(conv_filter, tf.constant([[0, 0], [0, 99], [0, 0]]))
-
-		conv_gate_condition = tf.squeeze(conv_gate_condition, [1])
-
-		conv_filter = tf.add(conv_filter, conv_filter_condition)
-		conv_gate = tf.add(conv_gate, conv_gate_condition)
-	
-	conv_filter = tf.tanh(conv_filter)
-	conv_gate = tf.sigmoid(conv_gate)
-	product = tf.multiply(conv_filter, conv_gate)
-
-	residual = conv_1x1(
-		layer_type=layer_type,
-		name="conv_residual_" + name,
-		inputs=product,
-		filters=residual_channels,
-		strides=strides,
-		regularizer=regularizer,
-		training=training,
-		data_format=data_format
-	)
-
-	skip = conv_1x1(
-		layer_type=layer_type,
-		name="conv_skip_" + name,
-		inputs=product,
-		filters=skip_channels,
-		strides=strides,
-		regularizer=regularizer,
-		training=training,
-		data_format=data_format
-	)
-
-	return residual, skip
-
 def conv_1x1(layer_type, name, inputs, filters, strides, regularizer, training, data_format):
-	block = conv_actv(
+	return conv_actv(
 		layer_type=layer_type,
 		name=name,
 		inputs=inputs,
@@ -128,7 +22,125 @@ def conv_1x1(layer_type, name, inputs, filters, strides, regularizer, training, 
 		data_format=data_format,
 	)
 
+def causal_conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
+						padding, regularizer, training, data_format, bn_momentum, bn_epsilon, dilation=1):
+	
+	block = conv_bn_actv(
+		layer_type=layer_type,
+		name=name,
+		inputs=inputs,
+		filters=filters,
+		kernel_size=kernel_size,
+		activation_fn=activation_fn,
+		strides=strides,
+		padding=padding,
+		regularizer=regularizer,
+		training=training,
+		data_format=data_format,
+		bn_momentum=bn_momentum,
+		bn_epsilon=bn_epsilon,
+		dilation=dilation
+	)
+
+	# pad the left side of the time-series with an amount of zeros based on the dilation rate
+	block = tf.pad(block, [[0, 0], [dilation * (kernel_size - 1), 0], [0,0]])
+
 	return block
+
+def wavenet_conv_block(layer_type, name, inputs, condition, filters, kernel_size, activation_fn, strides,
+				padding, regularizer, training, data_format, bn_momentum, bn_epsilon, layers_per_block, upsample_factor):
+	
+	# split source (raw audio) along channels
+	source_shape = inputs.get_shape().as_list()
+	source_filter = inputs[:, :, 0:int(source_shape[2] / 2)]
+	source_gate = inputs[:, :, int(source_shape[2] / 2):]
+
+	# split condition (mel spectrograms) along channels
+	condition_shape = condition.get_shape().as_list()
+	condition_filter = condition[:, :, 0:int(condition_shape[2] / 2)]
+	condition_gate = condition[:, :, int(condition_shape[2] / 2):]
+ 
+	condition_filter = tf.expand_dims(condition_filter, 1)
+	for i in range(upsample_factor):
+		condition_filter = tf.layers.conv2d_transpose(
+			name="filter_condition_{}_{}".format(name, i),
+			inputs=condition_filter,
+			filters=filters,
+			kernel_size=1, # 1x1 convolution
+			strides=(1, 2), # scale factor
+			kernel_regularizer=regularizer,
+			data_format=data_format
+		)
+	condition_filter = tf.squeeze(condition_filter, [1])
+	condition_filter = condition_filter[:, :tf.shape(source_filter)[1], :]
+
+	condition_gate = tf.expand_dims(condition_gate, 1)
+	for i in range(upsample_factor):
+		condition_gate = tf.layers.conv2d_transpose(
+			name="gate_condition_{}_{}".format(name, i),
+			inputs=condition_gate,
+			filters=filters,
+			kernel_size=1, # 1x1 convolution
+			strides=(1, 2), # scale factor
+			kernel_regularizer=regularizer,
+			data_format=data_format
+		)
+	condition_gate = tf.squeeze(condition_gate, [1])
+	condition_gate = condition_gate[:, :tf.shape(source_gate)[1], :]
+
+	for layer in range(layers_per_block):
+		dilation = 2 ** layer
+
+		source_filter = causal_conv_bn_actv(
+			layer_type=layer_type,
+			name="filter_{}_{}".format(name, layer),
+			inputs=source_filter,
+			filters=filters,
+			kernel_size=kernel_size,
+			activation_fn=None,
+			strides=strides,
+			padding=padding,
+			regularizer=regularizer,
+			training=training,
+			data_format=data_format,
+			bn_momentum=bn_momentum,
+			bn_epsilon=bn_epsilon,
+			dilation=dilation
+		)
+
+		source_gate = causal_conv_bn_actv(
+			layer_type=layer_type,
+			name="gate_{}_{}".format(name, layer),
+			inputs=source_gate,
+			filters=filters,
+			kernel_size=kernel_size,
+			activation_fn=None,
+			strides=strides,
+			padding=padding,
+			regularizer=regularizer,
+			training=training,
+			data_format=data_format,
+			bn_momentum=bn_momentum,
+			bn_epsilon=bn_epsilon,
+			dilation=dilation
+		)
+
+		source_filter = tf.tanh(tf.add(source_filter, condition_filter))
+		source_gate = tf.sigmoid(tf.add(source_gate, condition_gate))
+		conv_feats = tf.multiply(source_filter, source_gate)
+
+		conv_feats = conv_1x1(
+			layer_type=layer_type,
+			name="post_1x1_{}_{}".format(name, layer), 
+			inputs=conv_feats, 
+			filters=filters, 
+			strides=strides, 
+			regularizer=regularizer, 
+			training=training, 
+			data_format=data_format
+		)
+
+	return tf.add(inputs, conv_feats)
 
 class WavenetEncoder(Encoder):
 
@@ -147,11 +159,11 @@ class WavenetEncoder(Encoder):
 				"strides": int,
 				"padding": str,
 				"blocks": int,
-				"layers": int,
-				"residual_channels": int,
-				"gate_channels": int,
-				"skip_channels": int,
-				"output_channels": int,
+				"layers_per_block": int,
+				"activation_fn": None,
+				"filters": int,
+				"upsample_factor": int,
+				"quantization_channels": int
 			}
 		)
 
@@ -160,7 +172,9 @@ class WavenetEncoder(Encoder):
 		return dict(
 			Encoder.get_optional_params(),
 			**{
-				"causal_convs": bool, # [TODO]
+				"data_format": str,
+				"bn_momentum": float,
+				"bn_epsilon": float
 			}
 		)
 
@@ -175,12 +189,8 @@ class WavenetEncoder(Encoder):
 		* **padding** (str) --- padding, can be "SAME" or "VALID"
 
 		* **blocks** (int) --- number of dilation cycles
-		* **layers** (int) --- total number of dilated causal convolutional layers
-		
-		* **residual_channels** (int) --- number of channels for block input and output
-		* **gate_channels** (int) --- number of channels for the gated unit
-		* **skip_channels** (int) --- number of channels for the skip output of the gated unit and skip connections 
-		* **output_channels** (int) --- number of output channels
+		* **layers_per_block** (int) --- number of dilated causal convolutional layers in each block
+		* **filters** (int) --- number of output channels
 		"""
 
 		super(WavenetEncoder, self).__init__(params, model, name, mode)
@@ -193,54 +203,55 @@ class WavenetEncoder(Encoder):
 
 		return tf.to_int32((signal + 1) / 2 * mu + 0.5)
 
+	def _get_receptive_field(self, filters, blocks, layers_per_block):
+		return (filters - 1) * (1 + blocks * (sum([2 ** i for i in range(layers_per_block + 1)]))) + 1
+
 	def _encode(self, input_dict):
 		"""
 		Creates TensorFlow graph for WaveNet like encoder.
 		...
 		"""
 
+		# takes raw audio and spectrograms
 		source, src_length = input_dict["source_tensors"][0]
-		condition, cond_length = input_dict["source_tensors"][1]
+		spectrogram, spec_length = input_dict["source_tensors"][1]
 
-		# add dummy dimension
+		# add dummy dimension to raw audio (1 channel)
 		source = tf.expand_dims(source, 2)
 
 		training = (self._mode == "train")
 		regularizer = self.params.get("regularizer", None)
 		data_format = self.params.get("data_format", "channels_last")		
 
-		if data_format == "channels_last":
-			conv_feats = source
-			spectrograms = condition
-		else:
-			conv_feats = tf.transpose(source, [0, 2, 1])
-			spectrograms = tf.transpose(condition, [0, 2, 1])
+		if data_format != "channels_last":
+			source = tf.transpose(source, [0, 2, 1])
+			spectrogram = tf.transpose(spectrogram, [0, 2, 1])
 
 		layer_type = self.params["layer_type"]
 		kernel_size = self.params["kernel_size"]
 		strides = self.params["strides"]
 		padding = self.params["padding"]
+		blocks = self.params["blocks"]
+		layers_per_block = self.params["layers_per_block"]
+		activation_fn = self.params["activation_fn"]
+		filters = self.params["filters"]
+		upsample_factor = self.params["upsample_factor"]
+		quantization_channels = self.params["quantization_channels"]
 
-		residual_channels = self.params["residual_channels"]
-		gate_channels = self.params["gate_channels"]
-		skip_channels = self.params["skip_channels"]
-		output_channels = self.params["output_channels"]
+		bn_momentum = self.params.get("bn_momentum", 0.1)
+		bn_epsilon = self.params.get("bn_epsilon", 1e-5)
 
-		encoded_input = self._mu_law_encode(conv_feats, output_channels)
-		print(encoded_input)
-
-		conv_feats = tf.cast(encoded_input, self.params["dtype"])
+		encoded_input = self._mu_law_encode(source, quantization_channels)
+		inputs = tf.cast(encoded_input, self.params["dtype"])
 
 		# ----- Convolutional layers -----------------------------------------------
 
-		# [TODO] use conv_bn
-
-		# causal layer
-		conv_feats = conv_actv(
+		# preprocessing causal convolutional layer
+		inputs = causal_conv_bn_actv(
 			layer_type=layer_type,
-			name="causal_conv",
-			inputs=conv_feats,
-			filters=residual_channels, 
+			name="preprocess",
+			inputs=inputs,
+			filters=filters, 
 			kernel_size=kernel_size,
 			activation_fn=None,
 			strides=strides,
@@ -248,65 +259,105 @@ class WavenetEncoder(Encoder):
 			regularizer=regularizer,
 			training=training,
 			data_format=data_format,
+			bn_momentum=bn_momentum,
+			bn_epsilon=bn_epsilon,
 			dilation=1
 		)
 
-		blocks = self.params["blocks"]
-		layers = self.params["layers"]
-		layers_per_stack = int(layers / blocks)
-		output_layer = None
-
 		# dilation stack
-		for layer in range(layers):
-			dilation = 2 ** (layer % layers_per_stack)
-			residual, skip = wavenet_conv_block(
-				layer_type=layer_type, 
-				name=str(layer + 1), 
-				inputs=conv_feats, 
-				condition=spectrograms,
-				residual_channels=residual_channels, 
-				gate_channels=gate_channels,
-				skip_channels=skip_channels,
-				kernel_size=kernel_size, 
-				activation_fn=None, # unused 
+		for block in range(blocks):
+			inputs = conv_1x1(
+				layer_type=layer_type,
+				name="adapter_1x1_{}".format(block), 
+				inputs=inputs, 
+				filters=filters, 
 				strides=strides, 
-				padding=padding, 
 				regularizer=regularizer, 
 				training=training, 
-				data_format=data_format, 
-				dilation=dilation
+				data_format=data_format
 			)
 
-			conv_feats = tf.add(residual, conv_feats)
+			inputs = wavenet_conv_block(
+				layer_type=layer_type,
+				name=block,
+				inputs=inputs,
+				condition=spectrogram,
+				filters=filters,
+				kernel_size=kernel_size,
+				activation_fn=None,
+				strides=strides,
+				padding=padding,
+				regularizer=regularizer,
+				training=training,
+				data_format=data_format,
+				bn_momentum=bn_momentum,
+				bn_epsilon=bn_epsilon,
+				layers_per_block=layers_per_block,
+				upsample_factor=upsample_factor
+			)
 
-			if output_layer is not None: 
-				output_layer = tf.add(skip, output_layer)
-			else:
-				output_layer = skip
+			# for layer in range(layers_per_block):
+			# 	dilation = 2 ** layer
 
-		# skip-connections
-		output_layer = tf.nn.relu(output_layer)
-		output_layer = conv_1x1(
-			layer_type=layer_type, 
-			name="skip_1x1_1", 
-			inputs=output_layer, 
-			filters=skip_channels, 
-			strides=1, 
+			# 	conv_feats = causal_conv_bn_actv(
+			# 		layer_type=layer_type,
+			# 		name="dilation_{}_{}".format(block, layer),
+			# 		inputs=inputs,
+			# 		filters=filters,
+			# 		kernel_size=kernel_size,
+			# 		activation_fn=activation_fn,
+			# 		strides=strides,
+			# 		padding=padding,
+			# 		regularizer=regularizer,
+			# 		training=training,
+			# 		data_format=data_format,
+			# 		bn_momentum=bn_momentum,
+			# 		bn_epsilon=bn_epsilon,
+			# 		dilation=dilation
+			# 	)
+
+			# 	conv_feats = conv_1x1(
+			# 		layer_type=layer_type,
+			# 		name="post_1x1_{}_{}".format(block, layer), 
+			# 		inputs=conv_feats, 
+			# 		filters=filters, 
+			# 		strides=strides, 
+			# 		regularizer=regularizer, 
+			# 		training=training, 
+			# 		data_format=data_format
+			# 	)
+
+			# 	inputs = tf.add(inputs, conv_feats)
+
+		# postprocessing (outputs)
+		outputs = tf.nn.relu(inputs)
+		outputs = conv_1x1(
+			layer_type=layer_type,
+			name="postprocess_1", 
+			inputs=outputs, 
+			filters=filters, 
+			strides=strides, 
 			regularizer=regularizer, 
 			training=training, 
 			data_format=data_format
 		)
 
-		output_layer = tf.nn.relu(output_layer)
-		output_layer = conv_1x1(
-			layer_type=layer_type, 
-			name="skip_1x1_2", 
-			inputs=output_layer, 
-			filters=output_channels, 
-			strides=1, 
+		outputs = tf.nn.relu(outputs)
+		outputs = conv_1x1(
+			layer_type=layer_type,
+			name="postprocess_2", 
+			inputs=outputs, 
+			filters=quantization_channels, 
+			strides=strides, 
 			regularizer=regularizer, 
 			training=training, 
 			data_format=data_format
 		)
 
-		return { "logits": output_layer, "outputs": [encoded_input] }
+		# remove samples corresponding to the receptive field for the first sample
+		# these are computed from the padded values
+		receptive_field = self._get_receptive_field(filters, blocks, layers_per_block) 
+		outputs = tf.slice(outputs, [0, receptive_field, 0], [-1, -1, -1])
+		encoded_input = tf.slice(encoded_input, [0, receptive_field, 0], [-1, -1, -1])
+
+		return { "logits": outputs, "outputs": [encoded_input] }

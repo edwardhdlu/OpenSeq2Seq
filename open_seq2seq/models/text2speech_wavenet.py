@@ -18,7 +18,6 @@ class Text2SpeechWavenet(EncoderDecoderModel):
 		super(Text2SpeechWavenet, self).__init__(params, mode=mode, hvd=hvd)
 
 	def evaluate(self, input_values, output_values):
-		# reduce data for Horovod?
 		return [input_values, output_values]
 
 	def finalize_evaluation(self, results_per_batch, training_step=None):

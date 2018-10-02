@@ -6,6 +6,7 @@ from open_seq2seq.decoders import FakeDecoder
 from open_seq2seq.losses import WavenetLoss
 from open_seq2seq.data import WavenetDataLayer
 from open_seq2seq.optimizers.lr_policies import exp_decay
+from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
 base_model = Text2SpeechWavenet
 
@@ -15,7 +16,7 @@ base_params = {
 	"max_steps": 10000,
 
 	"num_gpus": 2,
-	"batch_size_per_gpu": 64,
+	"batch_size_per_gpu": 16,
 
 	# [TODO] add logging params
 	"save_summaries_steps": 50,
@@ -50,13 +51,13 @@ base_params = {
 		"layer_type": "conv1d",
 		"kernel_size": 3,
 		"strides": 1,
-		"padding": "SAME",
-		"blocks": 4,
-		"layers": 24,
-		"residual_channels": 64,
-		"gate_channels": 64,
-		"skip_channels": 32,
-		"output_channels": 256, # [TODO] use one channel param, change to layers_per_block
+		"padding": "VALID",
+		"blocks": 2,
+		"layers_per_block": 6,
+		"activation_fn": gated_linear_units,
+		"filters": 16,
+		"upsample_factor": 8, 
+		"quantization_channels": 256
 	},
 
 	"decoder": FakeDecoder,
@@ -64,7 +65,6 @@ base_params = {
 	"loss": WavenetLoss,
 	"loss_params": {
 		"quantization_channels": 256,
-		"batch_size": 1
 	},
 
 	"data_layer": WavenetDataLayer,
