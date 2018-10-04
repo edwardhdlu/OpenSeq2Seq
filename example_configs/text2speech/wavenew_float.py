@@ -12,7 +12,7 @@ base_model = Text2SpeechWavenet
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "max_steps": 10000,
+  "max_steps": 50000,
 
   "num_gpus": 1,
   "batch_size_per_gpu": 2,
@@ -33,7 +33,7 @@ base_params = {
     "decay_steps": 20000,
     "decay_rate": 0.1,
     "use_staircase_decay": False,
-    "begin_decay_at": 45000,
+    "begin_decay_at": 15000,
     "min_lr": 1e-5,
   },
   "dtype": tf.float32,
