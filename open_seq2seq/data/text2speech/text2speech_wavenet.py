@@ -135,11 +135,27 @@ class WavenetDataLayer(DataLayer):
 		audio, spectrogram = get_speech_features_from_file(
 			file_path,
 			self.params["num_audio_features"],
-			features_type="mels",
+			features_type="magnitude",
+			data_min=1e-5,
 			return_raw_audio=True
 		)
 
 		# [TODO] add padding here?
+		spectrogram = np.pad(
+				spectrogram,
+				((0, 1), (0, 0)),
+				"constant",
+				constant_values=1e-5
+		)
+		assert len(audio) < len(spectrogram)*256, \
+				"audio len: {}, spec*256 len: {}".format(len(audio), len(spectrogram)*256)
+		num_pad = len(spectrogram)*256 - len(audio)
+		audio = np.pad(
+				audio,
+				(0, num_pad),
+				"constant",
+				constant_values=0
+		)
 
 		return audio.astype(self.params["dtype"].as_numpy_dtype()), \
 			np.int32([len(audio)]), \
@@ -161,7 +177,7 @@ class WavenetDataLayer(DataLayer):
 				lambda line: tf.py_func(
 					self._parse_audio_element,
 					[line],
-					[self.params["dtype"], tf.int32, self.params["dtype"], tf.int32], 
+					[self.params["dtype"], tf.int32, self.params["dtype"], tf.int32],
 					stateful=False
 				),
 				num_parallel_calls=8
@@ -192,9 +208,9 @@ class WavenetDataLayer(DataLayer):
 		src_length = tf.reshape(src_length, [self.params["batch_size"]])
 
 		self._input_tensors = {}
-		self._input_tensors["source_tensors"] = []
-		self._input_tensors["source_tensors"].append([source, src_length])
-		self._input_tensors["source_tensors"].append([spec, spec_length])
+		self._input_tensors["source_tensors"] = [source, src_length, spec, spec_length]
+		#self._input_tensors["source_tensors"].append([source, src_length])
+		#self._input_tensors["source_tensors"].append([spec, spec_length])
 
 		if self.params["mode"] != "infer":
 			self._input_tensors["target_tensors"] = [source, src_length]
