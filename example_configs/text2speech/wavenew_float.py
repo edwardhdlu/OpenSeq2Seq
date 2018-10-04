@@ -15,7 +15,7 @@ base_params = {
   "max_steps": 10000,
 
   "num_gpus": 1,
-  "batch_size_per_gpu": 16,
+  "batch_size_per_gpu": 2,
 
   # [TODO] add logging params
   "save_summaries_steps": 100,
