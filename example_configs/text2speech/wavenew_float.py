@@ -52,37 +52,37 @@ base_params = {
     "quantization_channels": 256,
     "convnet_layers": [
       {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 256, "dropout_keep_prob": 0.8,
+        "kernel_size": [1,8], "stride": [1,4],
+        "num_channels": 128, "dropout_keep_prob": 0.8,
       },
+      # {
+      #   "kernel_size": [1,8], "stride": [1,2],
+      #   "num_channels": 256, "dropout_keep_prob": 0.8,
+      # },
       {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 256, "dropout_keep_prob": 0.8,
+        "kernel_size": [1,8], "stride": [1,4],
+        "num_channels": 128, "dropout_keep_prob": 0.8,
       },
+      # {
+      #   "kernel_size": [1,8], "stride": [1,2],
+      #   "num_channels": 512, "dropout_keep_prob": 0.8,
+      # },
       {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 384, "dropout_keep_prob": 0.8,
+        "kernel_size": [1,8], "stride": [1,4],
+        "num_channels": 256,"dropout_keep_prob": 0.7,
       },
+      # {
+      #   "kernel_size": [1,8], "stride": [1,2],
+      #   "num_channels": 768, "dropout_keep_prob": 0.7,
+      # },
       {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 512, "dropout_keep_prob": 0.8,
+        "kernel_size": [1,8], "stride": [1,4],
+        "num_channels": 256, "dropout_keep_prob": 0.6,
       },
-      {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 640,"dropout_keep_prob": 0.7,
-      },
-      {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 768, "dropout_keep_prob": 0.7,
-      },
-      {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 896, "dropout_keep_prob": 0.6,
-      },
-      {
-        "kernel_size": [1,8], "stride": [1,2],
-        "num_channels": 1024, "dropout_keep_prob": 0.6,
-      }
+      # {
+      #   "kernel_size": [1,8], "stride": [1,2],
+      #   "num_channels": 1024, "dropout_keep_prob": 0.6,
+      # }
     ],
 
   },
