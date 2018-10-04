@@ -43,7 +43,8 @@ base_params = {
   },
   "initializer": tf.contrib.layers.xavier_initializer,
 
-  "summaries": [],
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": WavenewEncoder,
   "encoder_params": {
@@ -97,7 +98,7 @@ base_params = {
   "data_layer": WavenetDataLayer,
   "data_layer_params": {
     "dataset": "LJ",
-    "num_audio_features": 512,
+    "num_audio_features": 513,
     "dataset_location": "/data/speech/LJSpeech/wavs/"
   }
 }
