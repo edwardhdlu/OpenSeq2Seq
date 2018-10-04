@@ -63,6 +63,16 @@ class WavenewEncoder(Encoder):
 
     return tf.to_int32((signal + 1) / 2 * mu + 0.5)
 
+  def _mu_law_decode(self, output, quantization_channels):
+    '''Recovers waveform from quantized values.'''
+    with tf.name_scope('decode'):
+        mu = quantization_channels - 1
+        # Map values back to [-1, 1].
+        signal = 2 * (tf.to_float(output) / mu) - 1
+        # Perform inverse of mu-law transformation.
+        magnitude = (1 / mu) * ((1 + mu)**abs(signal) - 1)
+        return tf.sign(signal) * magnitude
+
   def _encode(self, input_dict):
     """
     Creates TensorFlow graph for WaveNet like encoder.
@@ -183,6 +193,8 @@ class WavenewEncoder(Encoder):
         bn_momentum=self.params.get('bn_momentum', 0.1),
         bn_epsilon=self.params.get('bn_epsilon', 1e-5),
     )
-    audio = tf.nn.softmax(outputs)
+    audio = tf.argmax(tf.nn.softmax(outputs), axis=-1, output_type=tf.int32)
+    audio = self._mu_law_decode(audio, self.params["quantization_channels"])
+    audio = tf.cast(audio, tf.float32)
 
     return {"logits": outputs, "outputs": [encoded_input, audio] }
