@@ -29,6 +29,7 @@ class WavenetLoss(Loss):
 		mask = tf.sequence_mask(
 				lengths=input_dict["target_tensors"][1], dtype=tf.float32
 		)
+		loss = loss * mask
 		count = tf.reduce_sum(tf.multiply(tf.ones_like(loss), mask))
 		loss = tf.div(tf.reduce_sum(loss), count)
 
