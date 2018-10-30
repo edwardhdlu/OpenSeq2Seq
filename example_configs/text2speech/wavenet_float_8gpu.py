@@ -53,7 +53,7 @@ base_params = {
     "padding": "VALID",
     "blocks": 3,
     "layers_per_block": 10,
-    "filters": 32,
+    "filters": 16,
     "quantization_channels": 256
   },
 
