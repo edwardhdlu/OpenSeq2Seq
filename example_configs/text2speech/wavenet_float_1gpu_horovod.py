@@ -15,15 +15,15 @@ base_params = {
   "use_horovod": True,
   "max_steps": 5000,
 
-  "num_gpus": 8,
-  "batch_size_per_gpu": 8,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 1,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
-  "logdir": "result/wavenet-LJ-mixed",
+  "logdir": "result/wavenet-LJ-float",
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -36,8 +36,7 @@ base_params = {
     "begin_decay_at": 45000,
     "min_lr": 1e-5,
   },
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
     "scale": 1e-6
@@ -54,7 +53,7 @@ base_params = {
     "padding": "VALID",
     "blocks": 3,
     "layers_per_block": 10,
-    "filters": 16,
+    "filters": 64,
     "quantization_channels": 256
   },
 
