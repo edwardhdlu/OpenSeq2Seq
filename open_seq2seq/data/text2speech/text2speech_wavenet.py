@@ -16,7 +16,6 @@ class WavenetDataLayer(DataLayer):
   def get_required_params():
     return dict(
         DataLayer.get_required_params(), **{
-            "dataset": str,
             "num_audio_features": int,
             "dataset_files": list
         }
@@ -26,8 +25,7 @@ class WavenetDataLayer(DataLayer):
   def get_optional_params():
     return dict(
         DataLayer.get_optional_params(), **{
-            "dataset_location": str,
-            "receptive_field": int
+            "dataset_location": str
         }
     )
 
@@ -39,9 +37,11 @@ class WavenetDataLayer(DataLayer):
 
     Config parameters:
 
-    * **dataset** (str) --- The dataset to use, currently only supports "LJ" 
-      for LJSpeech 1.1
+    * **num_audio_features** (int) --- number of spectrogram audio features
+    * **dataset_files** (list) --- list with paths to all dataset .csv files
 
+    * **dataset_location** (str) --- string with path to directory where wavs
+      are stored
     """
 
     super(WavenetDataLayer, self).__init__(
@@ -101,12 +101,6 @@ class WavenetDataLayer(DataLayer):
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
-      #Decrease num_eval for dev, since most data is thrown out anyways
-      if self.params['mode'] == 'eval':
-        start = self._worker_id * self.params['batch_size']
-        end = start+self.params['batch_size']
-        return data[start:end]
-
       size = len(data)
       start = size // self._num_workers * self._worker_id
 
@@ -210,13 +204,9 @@ class WavenetDataLayer(DataLayer):
     Creates the feed dict for interactive infer using a spectrogram
 
     Args:
-      model_in: tuple(
-        source: source audio
-        src_length: length of the source
-        spec: conditioning spectrogram
-        spec_length: length of the spectrogram
-        spec_offset: iterative index for position of receptive field window
-      )
+      model_in: tuple containing source audio, length of the source, \
+      conditioning spectrogram, length of the spectrogram, index of \
+      receptive field window
     """
 
     source, src_length, spec, spec_length, spec_offset = model_in
@@ -256,7 +246,7 @@ class WavenetDataLayer(DataLayer):
       )
 
     else:
-      print("Non-interactive infer is not supported")
+      raise ValueError("Non-interactive infer is not supported")
 
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE) \
       .make_initializable_iterator()
@@ -276,4 +266,4 @@ class WavenetDataLayer(DataLayer):
       self._input_tensors["target_tensors"] = [source, src_length]
 
     else:
-      print("Non-interactive infer is not supported")
+      raise ValueError("Non-interactive infer is not supported")
