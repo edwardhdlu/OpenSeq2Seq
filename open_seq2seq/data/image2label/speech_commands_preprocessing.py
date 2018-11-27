@@ -1,37 +1,112 @@
-# Produces a .csv containing file names for balanced classes and their labels
-# Also randomly samples 1s clips from _background_noise_/ for silence label
+# Produces labelled .csv files containing balanced samples of classes
+# and their labels for the chosen dataset
 import os
 import random
 import librosa
 
-classes = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "bed", "bird", "cat", "dog", "eight", "five", "four", "happy", "house", "marvin", "nine", "one", "seven", "sheila", "six", "three", "tree", "two", "wow", "zero"]
 
-samples_per_class = 1300
-root_dir = "../../../data/speech_commands_v0.01"
-result = []
+# choose one of three datasets
+# 	1) v1-12: V1 dataset with 12 classes, including unknown and silence
+# 	2) v1-30: V1 dataset with 30 classes, without unknown and silence
+# 	3) v2: V2 dataset with 35 classes
+DATASET = "v1-12"
 
-# ensure our samples aren't in the test/validation sets
-test_files = open(os.path.join(root_dir, "testing_list.txt")).read().splitlines()
-val_files = open(os.path.join(root_dir, "validation_list.txt")).read().splitlines()
-exclude = set(test_files + val_files)
+if DATASET == "v1-12":
+	classes = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
+elif DATASET == "v1-30":
+	classes = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "bed", "bird", "cat", "dog", "eight", "five", "four", "happy", "house", "marvin", "nine", "one", "seven", "sheila", "six", "three", "tree", "two", "wow", "zero"]
+elif DATASET == "v2":
+	classes = ["backward", "bed", "bird", "cat", "dog", "down", "eight", "five", "follow", "forward", "four", "go", "happy", "house", "learn", "left", "marvin", "nine", "no", "off", "on", "one", "right", "seven", "sheila", "six", "stop", "three", "tree", "two", "up", "visual", "wow", "yes", "zero"]
+else:
+	print("Dataset not supported")
+	exit()
 
-# sample regular classes
-for i, label in enumerate(classes):
-	folder = os.path.join(root_dir, label)
-	files = os.listdir(folder)
-	class_samples = []
+root_dir = "../../../data"
+if "v1" in DATASET:
+	root_dir = os.path.join(root_dir, "speech_commands_v0.01")
+else:
+	root_dir = os.path.join(root_dir, "speech_commands_v0.02")
 
-	for file in files:
-		file_path = "{}/{}".format(label, file)
-		if file_path not in exclude:
-			class_samples.append("{},{}".format(i, file_path))
 
-	result += class_samples[:samples_per_class]
+train_split = 0.8
+test_split = val_split = (1 - train_split) / 2
 
-random.shuffle(result)
-print("Saving {} lines...".format(len(result)))
+data_list = []
+samples_per_class = None
 
-# save .csv file
-write_file = open(os.path.join(root_dir, "training_list.txt"), "w")
-for line in result:
-	write_file.write(line + "\n")
+# build a list of all available samples
+for idx, label in enumerate(classes):
+	class_list = []
+
+	if label == "unknown":
+		unknowns = ["bed", "bird", "cat", "dog", "eight", "five", "four", "happy", "house", "marvin", "nine", "one", "seven", "sheila", "six", "three", "tree", "two", "wow", "zero"]
+		
+		for unknown in unknowns:
+			folder = os.path.join(root_dir, unknown)
+
+			for file in os.listdir(folder):
+				file_path = "{}/{}".format(unknown, file)
+				class_list.append(file_path)
+
+	elif label == "silence":
+		silence_path = os.path.join(root_dir, "silence")
+		if not os.path.exists(silence_path):
+			os.mkdir(silence_path)
+
+		silence_stride = 2000
+		sampling_rate = 16000
+		folder = os.path.join(root_dir, "_background_noise_")
+
+		for file in os.listdir(folder):
+			if ".wav" in file:
+				load_path = os.path.join(folder, file)
+				y, sr = librosa.load(load_path)
+
+				for i in range(0, len(y) - sampling_rate, silence_stride):
+					file_path = "silence/{}_{}.wav".format(file[:-4], i)
+					y_slice = y[i:i + sampling_rate]
+					librosa.output.write_wav(os.path.join(root_dir, file_path), y_slice, sr)
+					class_list.append(file_path)
+
+	else:
+		folder = os.path.join(root_dir, label)
+
+		for file in os.listdir(folder):
+			file_path = "{}/{}".format(label, file)
+			class_list.append(file_path)
+
+	if samples_per_class is None or len(class_list) < samples_per_class:
+		samples_per_class = len(class_list)
+
+	random.shuffle(class_list)
+	data_list.append(class_list)
+
+
+# sample and write to files
+train_part = int(train_split * samples_per_class)
+test_part = int(test_split * samples_per_class)
+val_part = int(test_split * samples_per_class)
+
+train_samples = []
+test_samples = []
+val_samples = []
+
+for i, class_list in enumerate(data_list):
+	samples = class_list[:samples_per_class]
+
+	for sample in samples[:train_part]:
+		train_samples.append("{},{}".format(i, sample))
+	for sample in samples[train_part:train_part + test_part]:
+		test_samples.append("{},{}".format(i, sample))
+	for sample in samples[train_part + test_part:train_part + test_part + val_part]:
+		val_samples.append("{},{}".format(i, sample))
+
+train_file = open(os.path.join(root_dir, DATASET + "-train.txt"), "w")
+for line in train_samples:
+	train_file.write(line + "\n")
+test_file = open(os.path.join(root_dir, DATASET + "-test.txt"), "w")
+for line in test_samples:
+	test_file.write(line + "\n")
+val_file = open(os.path.join(root_dir, DATASET + "-val.txt"), "w")
+for line in val_samples:
+	val_file.write(line + "\n")
