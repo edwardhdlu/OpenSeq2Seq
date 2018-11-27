@@ -1,13 +1,12 @@
 import os
 import six
 import numpy as np
-import skimage.transform
 import tensorflow as tf
 import pandas as pd
 import librosa
 
 from open_seq2seq.data.data_layer import DataLayer
-from open_seq2seq.data.text2speech.speech_utils import \
+from open_seq2seq.data.speech2text.speech_utils import \
   get_speech_features_from_file
 
 class SpeechCommandsDataLayer(DataLayer):
@@ -24,7 +23,7 @@ class SpeechCommandsDataLayer(DataLayer):
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
-        "dataset_version": int
+        "cache_data": bool,
     })
 
   def split_data(self, data):
@@ -88,12 +87,26 @@ class SpeechCommandsDataLayer(DataLayer):
     self._input_tensors = None
 
   def preprocess_image(self, image):
-    # pad with zeros
-    image = np.pad(
-        image, 
-        ((0, self.params["num_audio_features"] - image.shape[0]), (0, 0)), 
-        "constant"
-    )
+    dim = self.params["num_audio_features"]
+
+    if image.shape[0] > dim: # randomly slice 80x80
+      offset = np.random.randint(0, image.shape[0] - dim + 1)
+      image = image[offset:offset + dim, :]
+
+    else: # symmetrically pad with zeros to 80x80
+      pad_left = (dim - image.shape[0]) // 2
+      pad_right = (dim - image.shape[0]) // 2
+
+      if (dim - image.shape[0]) % 2 == 1:
+        pad_right += 1
+
+      image = np.pad(
+          image, 
+          ((pad_left, pad_right), (0, 0)), 
+          "constant"
+      )
+
+    assert image.shape == (dim, dim)
 
     # add dummy dimension as channels
     image = np.expand_dims(image, -1)
@@ -113,34 +126,61 @@ class SpeechCommandsDataLayer(DataLayer):
         audio_filename
     )
 
+    # spectrogram = get_speech_features_from_file(
+    #     file_path,
+    #     self.params["num_audio_features"],
+    #     features_type="mel",
+    #     data_min=1e-5
+    #     # augmentation
+    # )
+
+    if self.params["mode"] == "train":
+      augmentation={ 
+        "time_stretch_ratio": 0.2,
+        "noise_level_min": -90,
+        "noise_level_max": -46,
+      }
+    else:
+      augmentation = None
+
     spectrogram = get_speech_features_from_file(
         file_path,
         self.params["num_audio_features"],
-        features_type="mel",
-        data_min=1e-5
-    )
+        features_type="logfbank", # mel
+        augmentation=augmentation
+    )[0]
 
     image = self.preprocess_image(spectrogram)
 
-    return image.astype(self.params["dtype"].as_numpy_dtype()), np.int32(label)
+    return np.float32(image), np.int32(label)
 
   def build_graph(self):
     dataset = tf.data.Dataset.from_tensor_slices(self._files)
 
-    if self.params["shuffle"]:
-      dataset = dataset.shuffle(self._size)
-    dataset = dataset.repeat()
+    cache_data = self.params.get("cache_data", False)
+
+    if not cache_data:
+      if self.params["shuffle"]:
+        dataset = dataset.shuffle(self._size)
 
     dataset = dataset.map(
         lambda line: tf.py_func(
             self.parse_element,
             [line],
-            [self.params["dtype"], tf.int32],
+            [tf.float32, tf.int32],
             stateful=False
         ),
         num_parallel_calls=8
     )
 
+    if cache_data:
+      dataset = dataset.cache()
+      if self.params["shuffle"]:
+        dataset = dataset.shuffle(self._size)
+
+    if self.params["repeat"]:
+      dataset = dataset.repeat()  
+    
     dataset = dataset.batch(self.params["batch_size"])
     dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 

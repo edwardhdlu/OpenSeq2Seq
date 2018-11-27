@@ -8,24 +8,26 @@ from open_seq2seq.optimizers.lr_policies import piecewise_constant, poly_decay
 import tensorflow as tf
 
 
-dataset_version = "v1-12"
-num_labels = 12
-
-if dataset_version == "v1-30":
-  num_labels = 30
-elif dataset_version == "v2": 
-  num_labels = 35
-
 base_model = Image2Label
+
+dataset_version = "v1-30"
+dataset_location = "data/speech_commands_v0.01"
+
+if dataset_version == "v1-12":
+  num_labels = 12
+elif dataset_version == "v1-30":
+  num_labels = 30
+else: 
+  num_labels = 35
+  dataset_location = "data/speech_commands_v0.02"
 
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_gpus": 1,
-  # "num_epochs": 100,
 
-  "max_steps": 3000,
-  "batch_size_per_gpu": 64,
+  "max_steps": 10000,
+  "batch_size_per_gpu": 32,
   "dtype": tf.float32,
 
   # "dtype": "mixed",
@@ -39,23 +41,24 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 200,
   "save_checkpoint_steps": 10000,
-  "logdir": "experiments/speech_commands_resnet",
+  "logdir": "experiments/speech_commands",
 
   "optimizer": "Momentum",
   "optimizer_params": {
     "momentum": 0.90, # 0.95
   },
-  # "lr_policy": poly_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.1,
-  #   "power": 2,
-  # },
-  "lr_policy": piecewise_constant,
+  "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.1,
-    "boundaries": [500, 1000, 1500, 2000],
-    "decay_rates": [0.1, 0.01, 0.001, 1e-4],
+    "power": 2,
   },
+  
+  # "lr_policy": piecewise_constant,
+  # "lr_policy_params": {
+  #   "learning_rate": 0.1,
+  #   "boundaries": [1000, 2000, 3000, 4000],
+  #   "decay_rates": [0.1, 0.01, 0.001, 1e-4],
+  # },
 
   "initializer": tf.variance_scaling_initializer,
 
@@ -77,7 +80,7 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": SpeechCommandsDataLayer,
   "data_layer_params": {
-    "dataset_location": "data/speech_commands_v0.01",
+    "dataset_location": dataset_location,
     "num_audio_features": 80,
     "num_labels": num_labels,
     "cache_data": True
@@ -85,14 +88,12 @@ base_params = {
 }
 
 train_params = {
-  # "batch_size_per_gpu": 256,
   "data_layer_params": {
     "dataset_files": [
       "training_list.txt"
     ],
     "shuffle": True,
     "repeat": True
-    # "shuffle_buffer_size": 100000,
   },
 }
 
