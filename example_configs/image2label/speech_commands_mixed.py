@@ -4,57 +4,48 @@ from open_seq2seq.encoders import ResNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import SpeechCommandsDataLayer
-from open_seq2seq.optimizers.lr_policies import piecewise_constant, poly_decay
+from open_seq2seq.optimizers.lr_policies import poly_decay
 import tensorflow as tf
 
 
-dataset_version = "v1-12"
-num_labels = 12
-
-if dataset_version == "v1-30":
-  num_labels = 30
-elif dataset_version == "v2": 
-  num_labels = 35
-
 base_model = Image2Label
+
+dataset_version = "v1-12"
+dataset_location = "data/speech_commands_v0.01"
+
+if dataset_version == "v1-12":
+  num_labels = 12
+elif dataset_version == "v1-30":
+  num_labels = 30
+else: 
+  num_labels = 35
+  dataset_location = "data/speech_commands_v0.02"
 
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_gpus": 1,
-  # "num_epochs": 100,
 
-  "max_steps": 3000,
-  "batch_size_per_gpu": 64,
-  "dtype": tf.float32,
-
-  # "dtype": "mixed",
-  # "loss_scaling": 512.0,
-  # "larc_params": {
-  #   "larc_eta": 0.001,
-  # },
+  "num_epochs": 10,
+  "batch_size_per_gpu": 32,
+  "dtype": "mixed",
+  "loss_scaling": 512.0,
 
   "save_summaries_steps": 1000,
   "print_loss_steps": 10,
   "print_samples_steps": 10000,
   "eval_steps": 200,
   "save_checkpoint_steps": 10000,
-  "logdir": "experiments/speech_commands_resnet",
+  "logdir": "experiments/speech_commands_mixed",
 
   "optimizer": "Momentum",
   "optimizer_params": {
-    "momentum": 0.90, # 0.95
+    "momentum": 0.90,
   },
-  # "lr_policy": poly_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.1,
-  #   "power": 2,
-  # },
-  "lr_policy": piecewise_constant,
+  "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.1,
-    "boundaries": [500, 1000, 1500, 2000],
-    "decay_rates": [0.1, 0.01, 0.001, 1e-4],
+    "power": 2,
   },
 
   "initializer": tf.variance_scaling_initializer,
@@ -77,22 +68,21 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": SpeechCommandsDataLayer,
   "data_layer_params": {
-    "dataset_location": "data/speech_commands_v0.01",
-    "num_audio_features": 80,
+    "dataset_location": dataset_location,
+    "num_audio_features": 120,
     "num_labels": num_labels,
-    "cache_data": True
+    "cache_data": True,
+    "augment_data": True
   },
 }
 
 train_params = {
-  # "batch_size_per_gpu": 256,
   "data_layer_params": {
     "dataset_files": [
-      "training_list.txt"
+      "v1-12-train.txt"
     ],
     "shuffle": True,
     "repeat": True
-    # "shuffle_buffer_size": 100000,
   },
 }
 
@@ -100,7 +90,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer_params": {
     "dataset_files": [
-      "testing_list_labeled.txt"
+      "v1-12-val.txt"
     ],
     "shuffle": False,
     "repeat": False

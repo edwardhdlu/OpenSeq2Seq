@@ -4,13 +4,13 @@ from open_seq2seq.encoders import ResNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import SpeechCommandsDataLayer
-from open_seq2seq.optimizers.lr_policies import piecewise_constant, poly_decay
+from open_seq2seq.optimizers.lr_policies import poly_decay
 import tensorflow as tf
 
 
 base_model = Image2Label
 
-dataset_version = "v1-30"
+dataset_version = "v1-12"
 dataset_location = "data/speech_commands_v0.01"
 
 if dataset_version == "v1-12":
@@ -26,39 +26,26 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 1,
 
-  "max_steps": 10000,
+  "num_epochs": 10,
   "batch_size_per_gpu": 32,
   "dtype": tf.float32,
-
-  # "dtype": "mixed",
-  # "loss_scaling": 512.0,
-  # "larc_params": {
-  #   "larc_eta": 0.001,
-  # },
 
   "save_summaries_steps": 1000,
   "print_loss_steps": 10,
   "print_samples_steps": 10000,
   "eval_steps": 200,
   "save_checkpoint_steps": 10000,
-  "logdir": "experiments/speech_commands",
+  "logdir": "experiments/speech_commands_float",
 
   "optimizer": "Momentum",
   "optimizer_params": {
-    "momentum": 0.90, # 0.95
+    "momentum": 0.90,
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.1,
     "power": 2,
   },
-  
-  # "lr_policy": piecewise_constant,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.1,
-  #   "boundaries": [1000, 2000, 3000, 4000],
-  #   "decay_rates": [0.1, 0.01, 0.001, 1e-4],
-  # },
 
   "initializer": tf.variance_scaling_initializer,
 
@@ -81,16 +68,17 @@ base_params = {
   "data_layer": SpeechCommandsDataLayer,
   "data_layer_params": {
     "dataset_location": dataset_location,
-    "num_audio_features": 80,
+    "num_audio_features": 120,
     "num_labels": num_labels,
-    "cache_data": True
+    "cache_data": True,
+    "augment_data": True
   },
 }
 
 train_params = {
   "data_layer_params": {
     "dataset_files": [
-      "training_list.txt"
+      "v1-12-train.txt"
     ],
     "shuffle": True,
     "repeat": True
@@ -101,7 +89,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer_params": {
     "dataset_files": [
-      "testing_list_labeled.txt"
+      "v1-12-val.txt"
     ],
     "shuffle": False,
     "repeat": False

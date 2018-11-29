@@ -6,7 +6,7 @@ import pandas as pd
 import librosa
 
 from open_seq2seq.data.data_layer import DataLayer
-from open_seq2seq.data.speech2text.speech_utils import \
+from open_seq2seq.data.text2speech.speech_utils import \
   get_speech_features_from_file
 
 class SpeechCommandsDataLayer(DataLayer):
@@ -24,6 +24,7 @@ class SpeechCommandsDataLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
         "cache_data": bool,
+        "augment_data": bool
     })
 
   def split_data(self, data):
@@ -89,11 +90,11 @@ class SpeechCommandsDataLayer(DataLayer):
   def preprocess_image(self, image):
     dim = self.params["num_audio_features"]
 
-    if image.shape[0] > dim: # randomly slice 80x80
+    if image.shape[0] > dim: # randomly slice to square
       offset = np.random.randint(0, image.shape[0] - dim + 1)
       image = image[offset:offset + dim, :]
 
-    else: # symmetrically pad with zeros to 80x80
+    else: # symmetrically pad with zeros to square
       pad_left = (dim - image.shape[0]) // 2
       pad_right = (dim - image.shape[0]) // 2
 
@@ -126,16 +127,8 @@ class SpeechCommandsDataLayer(DataLayer):
         audio_filename
     )
 
-    # spectrogram = get_speech_features_from_file(
-    #     file_path,
-    #     self.params["num_audio_features"],
-    #     features_type="mel",
-    #     data_min=1e-5
-    #     # augmentation
-    # )
-
-    if self.params["mode"] == "train":
-      augmentation={ 
+    if self.params["mode"] == "train" and self.params.get("augment_data", False):
+      augmentation = { 
         "time_stretch_ratio": 0.2,
         "noise_level_min": -90,
         "noise_level_max": -46,
@@ -146,9 +139,10 @@ class SpeechCommandsDataLayer(DataLayer):
     spectrogram = get_speech_features_from_file(
         file_path,
         self.params["num_audio_features"],
-        features_type="logfbank", # mel
+        features_type="mel",
+        data_min=1e-5,
         augmentation=augmentation
-    )[0]
+    )
 
     image = self.preprocess_image(spectrogram)
 
@@ -176,11 +170,11 @@ class SpeechCommandsDataLayer(DataLayer):
     if cache_data:
       dataset = dataset.cache()
       if self.params["shuffle"]:
-        dataset = dataset.shuffle(self._size)
+        dataset = dataset.shuffle(self._size)  
 
     if self.params["repeat"]:
-      dataset = dataset.repeat()  
-    
+      dataset = dataset.repeat()
+
     dataset = dataset.batch(self.params["batch_size"])
     dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 

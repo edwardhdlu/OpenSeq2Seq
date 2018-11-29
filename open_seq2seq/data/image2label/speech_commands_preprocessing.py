@@ -3,6 +3,7 @@
 import os
 import random
 import librosa
+import numpy as np
 
 
 # choose one of three datasets
@@ -32,7 +33,8 @@ train_split = 0.8
 test_split = val_split = (1 - train_split) / 2
 
 data_list = []
-samples_per_class = None
+min_samples_per_class = None
+max_samples_per_class = None
 
 # build a list of all available samples
 for idx, label in enumerate(classes):
@@ -75,31 +77,41 @@ for idx, label in enumerate(classes):
 			file_path = "{}/{}".format(label, file)
 			class_list.append(file_path)
 
-	if samples_per_class is None or len(class_list) < samples_per_class:
-		samples_per_class = len(class_list)
+	if min_samples_per_class is None or len(class_list) < min_samples_per_class:
+		min_samples_per_class = len(class_list)
+
+	if max_samples_per_class is None or len(class_list) > max_samples_per_class:
+		max_samples_per_class = len(class_list)
 
 	random.shuffle(class_list)
 	data_list.append(class_list)
 
 
 # sample and write to files
-train_part = int(train_split * samples_per_class)
-test_part = int(test_split * samples_per_class)
-val_part = int(test_split * samples_per_class)
+max_samples_per_class = min(max_samples_per_class, 2 * min_samples_per_class)
+test_part = int(test_split * min_samples_per_class)
+val_part = int(test_split * min_samples_per_class)
 
 train_samples = []
 test_samples = []
 val_samples = []
 
 for i, class_list in enumerate(data_list):
-	samples = class_list[:samples_per_class]
-
-	for sample in samples[:train_part]:
-		train_samples.append("{},{}".format(i, sample))
-	for sample in samples[train_part:train_part + test_part]:
+	# take test and validation samples out
+	for sample in class_list[:test_part]:
 		test_samples.append("{},{}".format(i, sample))
-	for sample in samples[train_part + test_part:train_part + test_part + val_part]:
+	for sample in class_list[test_part:test_part + val_part]:
 		val_samples.append("{},{}".format(i, sample))
+
+	samples = class_list[test_part + val_part:]
+	length = len(samples)
+
+	while len(class_list) < max_samples_per_class:
+		l = np.random.randint(0, length)
+		class_list.append(samples[l])
+
+	for sample in class_list[test_part + val_part:max_samples_per_class]:
+		train_samples.append("{},{}".format(i, sample))
 
 train_file = open(os.path.join(root_dir, DATASET + "-train.txt"), "w")
 for line in train_samples:
