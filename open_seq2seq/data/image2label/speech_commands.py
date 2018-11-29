@@ -56,6 +56,22 @@ class SpeechCommandsDataLayer(DataLayer):
       return 0
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
+    """
+    ResNet Speech Commands data layer constructor.
+
+    Config parameters:
+
+    * **dataset_files** (list) --- list with paths to all dataset .csv files
+    * **dataset_location** (str) --- string with path to directory where .wavs
+      are stored
+    * **num_audio_features** (int) --- number of spectrogram audio features and 
+      image dimension
+    * **num_labels** (int) --- number of classes in dataset
+    
+    * **cache_data** (bool) --- cache the training data in the first epoch
+    * **augment_data** (bool) --- add time stretch and noise to training data
+    """
+
     super(SpeechCommandsDataLayer, self).__init__(params, model, num_workers, worker_id)
 
     if self.params["mode"] == "infer":
@@ -88,6 +104,8 @@ class SpeechCommandsDataLayer(DataLayer):
     self._input_tensors = None
 
   def preprocess_image(self, image):
+    """Crops or pads a spectrogram into a fixed dimension square image
+    """
     dim = self.params["num_audio_features"]
 
     if image.shape[0] > dim: # randomly slice to square
@@ -115,6 +133,8 @@ class SpeechCommandsDataLayer(DataLayer):
     return image
 
   def parse_element(self, element):
+    """Reads an audio file and returns the augmented spectrogram image
+    """
     label, audio_filename = element
 
     if six.PY2:
