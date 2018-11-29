@@ -5,8 +5,6 @@ from __future__ import unicode_literals
 import numpy as np
 import librosa
 import librosa.filters
-from open_seq2seq.data.speech2text.speech_utils import \
-  augment_audio_signal
 import resampy as rs
 
 def get_speech_features_from_file(
@@ -70,7 +68,7 @@ def get_speech_features_from_file(
           int(fs * stretch_amount),
           filter='kaiser_fast',
       )
-      
+
       # noise
       noise_level_db = np.random.randint(
           low=augmentation['noise_level_min'],
