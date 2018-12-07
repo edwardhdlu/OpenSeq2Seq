@@ -10,7 +10,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_model = Image2Label
 
 dataset_version = "v1-30"
-dataset_location = "data/speech_commands_v0.01"
+dataset_location = "/data/speech_commands/v1"
 
 if dataset_version == "v1-12":
   num_labels = 12
@@ -18,23 +18,23 @@ elif dataset_version == "v1-30":
   num_labels = 30
 else: 
   num_labels = 35
-  dataset_location = "data/speech_commands_v0.02"
+  dataset_location = "/data/speech_commands/v2"
 
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 10,
+    "num_epochs": 50,
 
-    "num_gpus": 1,
+    "num_gpus": 8,
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 1000,
-    "print_loss_steps": 10,
-    "print_samples_steps": 5000,
-    "eval_steps": 100,
+    "save_summaries_steps": 5000,
+    "print_loss_steps": 50,
+    "print_samples_steps": 500,
+    "eval_steps": 500,
     "save_checkpoint_steps": 5000,
-    "logdir": "result_jasper/speech_commands_float",
+    "logdir": "result/speech_commands_float",
 
     "optimizer": "Momentum",
     "optimizer_params": {
