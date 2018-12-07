@@ -10,7 +10,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_model = Image2Label
 
 dataset_version = "v1-30"
-dataset_location = "/data/speech_commands/v1"
+dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
   num_labels = 12
@@ -18,7 +18,7 @@ elif dataset_version == "v1-30":
   num_labels = 30
 else: 
   num_labels = 35
-  dataset_location = "/data/speech_commands/v2"
+  dataset_location = "/data/speech-commands/v2"
 
 base_params = {
     "random_seed": 0,
