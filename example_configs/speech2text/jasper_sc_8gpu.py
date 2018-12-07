@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Image2Label
 
-dataset_version = "v1-30"
+dataset_version = "v1-12"
 dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
@@ -176,7 +176,7 @@ base_params = {
         "dataset_location": dataset_location,
         "num_audio_features": 80,
         "num_labels": num_labels,
-        "cache_data": True,
+        "cache_data": False,
         "augment_data": True
     },
 }
@@ -192,7 +192,7 @@ train_params = {
 }
 
 eval_params = {
-  "batch_size_per_gpu": 16,
+  "batch_size_per_gpu": 4,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"
