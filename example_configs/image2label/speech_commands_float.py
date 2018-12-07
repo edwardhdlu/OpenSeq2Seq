@@ -26,7 +26,7 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 1,
 
-  "num_epochs": 10,
+  "num_epochs": 20,
   "batch_size_per_gpu": 32,
   "dtype": tf.float32,
 
@@ -39,11 +39,11 @@ base_params = {
 
   "optimizer": "Momentum",
   "optimizer_params": {
-    "momentum": 0.90,
+    "momentum": 0.95,
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.1,
+    "learning_rate": 0.2,
     "power": 2,
   },
 
@@ -78,7 +78,7 @@ base_params = {
 train_params = {
   "data_layer_params": {
     "dataset_files": [
-      "v1-12-train.txt"
+      dataset_version + "-train.txt"
     ],
     "shuffle": True,
     "repeat": True
@@ -89,7 +89,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer_params": {
     "dataset_files": [
-      "v1-12-val.txt"
+      dataset_version + "-val.txt"
     ],
     "shuffle": False,
     "repeat": False

@@ -20,6 +20,7 @@ def get_speech_features_from_file(
     trim=False,
     data_min=1e-5,
     return_raw_audio=False,
+    return_audio_duration=False,
     augmentation=None,
     mel_basis=None
 ):
@@ -84,6 +85,8 @@ def get_speech_features_from_file(
 
   if return_raw_audio:
     return signal, speech_features
+  elif return_audio_duration:
+    return speech_features, len(signal) * 1.0 / fs
   else:
     return speech_features
 

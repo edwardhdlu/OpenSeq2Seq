@@ -10,7 +10,7 @@ import numpy as np
 # 	1) v1-12: V1 dataset with 12 classes, including unknown and silence
 # 	2) v1-30: V1 dataset with 30 classes, without unknown and silence
 # 	3) v2: V2 dataset with 35 classes
-DATASET = "v1-12"
+DATASET = "v2"
 
 if DATASET == "v1-12":
 	classes = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
@@ -29,12 +29,13 @@ else:
 	root_dir = os.path.join(root_dir, "speech_commands_v0.02")
 
 
+eval_batch = 16
 train_split = 0.8
 test_split = val_split = (1 - train_split) / 2
 
 data_list = []
 min_samples_per_class = None
-max_samples_per_class = None
+max_samples_per_class = 5000
 
 # build a list of all available samples
 for idx, label in enumerate(classes):
@@ -80,17 +81,15 @@ for idx, label in enumerate(classes):
 	if min_samples_per_class is None or len(class_list) < min_samples_per_class:
 		min_samples_per_class = len(class_list)
 
-	if max_samples_per_class is None or len(class_list) > max_samples_per_class:
-		max_samples_per_class = len(class_list)
-
 	random.shuffle(class_list)
 	data_list.append(class_list)
 
 
 # sample and write to files
-max_samples_per_class = min(max_samples_per_class, 2 * min_samples_per_class)
 test_part = int(test_split * min_samples_per_class)
+test_part += eval_batch - (test_part % eval_batch)
 val_part = int(test_split * min_samples_per_class)
+val_part += eval_batch - (val_part % eval_batch)
 
 train_samples = []
 test_samples = []
