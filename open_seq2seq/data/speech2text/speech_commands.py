@@ -108,8 +108,6 @@ class SpeechCommandsDataLayer(DataLayer):
     """
     label, audio_filename = element
 
-    print(audio_filename)
-
     if six.PY2:
       audio_filename = unicode(audio_filename, "utf-8")
     else:
@@ -119,6 +117,8 @@ class SpeechCommandsDataLayer(DataLayer):
         self.params["dataset_location"],
         audio_filename
     )
+
+    print(file_path)
 
     if self.params["mode"] == "train" and self.params.get("augment_data", False):
       augmentation = { 
