@@ -108,6 +108,8 @@ class SpeechCommandsDataLayer(DataLayer):
     """
     label, audio_filename = element
 
+    print(audio_filename)
+
     if six.PY2:
       audio_filename = unicode(audio_filename, "utf-8")
     else:
