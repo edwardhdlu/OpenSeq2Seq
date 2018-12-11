@@ -204,7 +204,7 @@ train_params = {
 }
 
 eval_params = {
-  "batch_size_per_gpu": 8,
+  "batch_size_per_gpu": 4,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"
