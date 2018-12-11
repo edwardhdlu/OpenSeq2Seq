@@ -188,7 +188,7 @@ base_params = {
         "dataset_location": dataset_location,
         "num_audio_features": 128,
         "num_labels": num_labels,
-        "cache_data": False,
+        "cache_data": True,
         "augment_data": True
     },
 }
