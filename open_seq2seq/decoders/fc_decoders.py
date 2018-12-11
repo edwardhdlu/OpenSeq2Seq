@@ -305,7 +305,7 @@ class FullyConnectedSCDecoder(Decoder):
 
     logits = tf.reduce_mean(
         input_tensor=logits,
-        axis=1
+        axis=[1,2]
     )
 
     return {'logits': logits, 'outputs': [logits]}

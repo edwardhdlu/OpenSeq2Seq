@@ -26,7 +26,7 @@ base_params = {
     "num_epochs": 50,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 64,
+    "batch_size_per_gpu": 1,
     "iter_size": 1,
 
     "save_summaries_steps": 10000,
@@ -65,104 +65,104 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [11], "stride": [2],
+                "type": "conv2d", "repeat": 1,
+                "kernel_size": [11,11], "stride": [2,2],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [11], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [11,11], "stride": [1,1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [11], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [11,11], "stride": [1,1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [13], "stride": [2],
+                "type": "conv2d", "repeat": 1,
+                "kernel_size": [13,13], "stride": [2,2],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [13], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [13,13], "stride": [1,1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [13], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [13,13], "stride": [1,1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [17], "stride": [2],
+                "type": "conv2d", "repeat": 1,
+                "kernel_size": [17,17], "stride": [2,2],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [17], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [17,17], "stride": [1,1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [17], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [17,17], "stride": [1,1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [21], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [21,21], "stride": [1,1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [21], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [21,21], "stride": [1,1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [25], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [25.25], "stride": [1,1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [25], "stride": [1],
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [25,25], "stride": [1,1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [29], "stride": [1],
+                "type": "conv2d", "repeat": 1,
+                "kernel_size": [29,29], "stride": [1,1],
                 "num_channels": 896, "padding": "SAME",
-                "dilation":[2], "dropout_keep_prob": 0.6,
+                "dilation":[2,2], "dropout_keep_prob": 0.6,
             },
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [1], "stride": [1],
+                "type": "conv2d", "repeat": 1,
+                "kernel_size": [1,1], "stride": [1,1],
                 "num_channels": 1024, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.6,
+                "dilation":[1,1], "dropout_keep_prob": 0.6,
             }
         ],
 
@@ -204,7 +204,7 @@ train_params = {
 }
 
 eval_params = {
-  "batch_size_per_gpu": 4,
+  # "batch_size_per_gpu": 4,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"
