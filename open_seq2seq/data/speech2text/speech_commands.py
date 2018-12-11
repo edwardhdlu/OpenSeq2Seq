@@ -103,6 +103,35 @@ class SpeechCommandsDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
+  def preprocess_image(self, image):
+    """Crops or pads a spectrogram into a fixed dimension square image
+    """
+    dim = self.params["num_audio_features"]
+
+    if image.shape[0] > dim: # randomly slice to square
+      offset = np.random.randint(0, image.shape[0] - dim + 1)
+      image = image[offset:offset + dim, :]
+
+    else: # symmetrically pad with zeros to square
+      pad_left = (dim - image.shape[0]) // 2
+      pad_right = (dim - image.shape[0]) // 2
+
+      if (dim - image.shape[0]) % 2 == 1:
+        pad_right += 1
+
+      image = np.pad(
+          image, 
+          ((pad_left, pad_right), (0, 0)), 
+          "constant"
+      )
+
+    assert image.shape == (dim, dim)
+
+    # add dummy dimension as channels
+    image = np.expand_dims(image, -1)
+
+    return image
+
   def parse_element(self, element):
     """Reads an audio file and returns the augmented spectrogram image
     """
@@ -118,8 +147,6 @@ class SpeechCommandsDataLayer(DataLayer):
         audio_filename
     )
 
-    print(file_path)
-
     if self.params["mode"] == "train" and self.params.get("augment_data", False):
       augmentation = { 
         "time_stretch_ratio": 0.2,
@@ -129,17 +156,18 @@ class SpeechCommandsDataLayer(DataLayer):
     else:
       augmentation = None
 
-    features, duration = get_speech_features_from_file(
+    spectrogram = get_speech_features_from_file(
         file_path,
         self.params["num_audio_features"],
         features_type="mel",
         data_min=1e-5,
-        return_audio_duration=True,
-        augmentation=augmentation,
+        augmentation=augmentation
     )
+
+    image = self.preprocess_image(spectrogram)
     
-    return features.astype(self.params["dtype"].as_numpy_dtype()), \
-        np.int32([len(features)]), np.int32([label]) 
+    return image.astype(self.params["dtype"].as_numpy_dtype()), \
+        np.int32(self.params["num_audio_features"]), np.int32(label) 
 
   def build_graph(self):
     dataset = tf.data.Dataset.from_tensor_slices(self._files)
@@ -168,11 +196,7 @@ class SpeechCommandsDataLayer(DataLayer):
     if self.params["repeat"]:
       dataset = dataset.repeat()
 
-    dataset = dataset.padded_batch(
-      self.params["batch_size"],
-      padded_shapes=([None, self.params["num_audio_features"]], 1, 1)
-    )
-
+    dataset = dataset.batch(self.params["batch_size"])
     dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
     self._iterator = dataset.make_initializable_iterator()
@@ -180,12 +204,13 @@ class SpeechCommandsDataLayer(DataLayer):
 
     inputs.set_shape([
         self.params["batch_size"], 
-        None, 
-        self.params["num_audio_features"], 
+        self.params["num_audio_features"],
+        self.params["num_audio_features"],
+        1 
     ])
-    lengths = tf.reshape(lengths, [self.params["batch_size"]])
+    lengths.set_shape([self.params["batch_size"]])
     labels = tf.one_hot(labels, self.params["num_labels"])
-    labels = tf.reshape(labels, [self.params["batch_size"], self.params["num_labels"]])
+    labels.set_shape([self.params["batch_size"], self.params["num_labels"]])
 
     self._input_tensors = {
         "source_tensors": [inputs, lengths],

@@ -295,6 +295,11 @@ class FullyConnectedSCDecoder(Decoder):
     lengths = input_dict['encoder_output']['src_length']
     regularizer = self.params.get('regularizer', None)
 
+    inputs = tf.reduce_mean(
+        input_tensor=inputs,
+        axis=[1,2]
+    )
+
     # activation is linear by default
     logits = tf.layers.dense(
         inputs=inputs,
@@ -303,9 +308,9 @@ class FullyConnectedSCDecoder(Decoder):
         name='fully_connected',
     )
 
-    logits = tf.reduce_mean(
-        input_tensor=logits,
-        axis=1
-    )
+    # logits = tf.reduce_mean(
+    #     input_tensor=logits,
+    #     axis=1
+    # )
 
     return {'logits': logits, 'outputs': [logits]}
