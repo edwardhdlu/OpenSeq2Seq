@@ -71,7 +71,7 @@ base_params = {
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 2,
                 "kernel_size": [11,11], "stride": [1,1],
                 "num_channels": 128, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
@@ -84,7 +84,7 @@ base_params = {
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 2,
                 "kernel_size": [13,13], "stride": [1,1],
                 "num_channels": 192, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
@@ -97,21 +97,21 @@ base_params = {
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 2,
                 "kernel_size": [17,17], "stride": [1,1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 2,
                 "kernel_size": [21,21], "stride": [1,1],
                 "num_channels": 320, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 2,
                 "kernel_size": [25,25], "stride": [1,1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
