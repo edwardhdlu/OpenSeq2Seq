@@ -164,7 +164,7 @@ base_params = {
                 "num_channels": 1024, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.6,
             }
-],
+        ],
 
         "dropout_keep_prob": 0.7,
 
@@ -188,7 +188,7 @@ base_params = {
         "dataset_location": dataset_location,
         "num_audio_features": 128,
         "num_labels": num_labels,
-        "cache_data": True,
+        "cache_data": False,
         "augment_data": True
     },
 }
