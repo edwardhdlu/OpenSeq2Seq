@@ -128,7 +128,7 @@ class SpeechCommandsDataLayer(DataLayer):
     assert image.shape == (dim, dim)
 
     # add dummy dimension as channels
-    image = np.expand_dims(image, -1)
+    # image = np.expand_dims(image, -1)
 
     return image
 
@@ -206,7 +206,6 @@ class SpeechCommandsDataLayer(DataLayer):
         self.params["batch_size"], 
         self.params["num_audio_features"],
         self.params["num_audio_features"],
-        1 
     ])
     lengths.set_shape([self.params["batch_size"]])
     labels = tf.one_hot(labels, self.params["num_labels"])

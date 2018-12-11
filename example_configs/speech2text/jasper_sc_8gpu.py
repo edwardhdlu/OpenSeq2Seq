@@ -29,11 +29,11 @@ base_params = {
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 5000,
-    "print_loss_steps": 50,
-    "print_samples_steps": 500,
-    "eval_steps": 500,
-    "save_checkpoint_steps": 5000,
+    "save_summaries_steps": 10000,
+    "print_loss_steps": 100,
+    "print_samples_steps": 1000,
+    "eval_steps": 1000,
+    "save_checkpoint_steps": 10000,
     "logdir": "result/speech_commands_float",
 
     "optimizer": "Momentum",
@@ -85,6 +85,12 @@ base_params = {
                 "residual": True
             },
             {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [13], "stride": [2],
+                "num_channels": 384, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
+            },
+            {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
@@ -97,6 +103,12 @@ base_params = {
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
+            },
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [17], "stride": [2],
+                "num_channels": 512, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
@@ -152,7 +164,7 @@ base_params = {
                 "num_channels": 1024, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.6,
             }
-        ],
+],
 
         "dropout_keep_prob": 0.7,
 
@@ -174,9 +186,9 @@ base_params = {
     "data_layer": SpeechCommandsDataLayer,
     "data_layer_params": {
         "dataset_location": dataset_location,
-        "num_audio_features": 80,
+        "num_audio_features": 128,
         "num_labels": num_labels,
-        "cache_data": False,
+        "cache_data": True,
         "augment_data": True
     },
 }
@@ -192,7 +204,7 @@ train_params = {
 }
 
 eval_params = {
-  "batch_size_per_gpu": 4,
+  "batch_size_per_gpu": 16,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"
