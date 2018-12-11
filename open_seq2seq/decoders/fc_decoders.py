@@ -295,10 +295,9 @@ class FullyConnectedSCDecoder(Decoder):
     lengths = input_dict['encoder_output']['src_length']
     regularizer = self.params.get('regularizer', None)
 
-    inputs = tf.layers.flatten(
-        inputs=inputs,
-        name='flatten'
-    )
+    print(inputs.get_shape())
+    inputs = tf.squeeze(inputs, squeeze_dims=2)
+    print(inputs.get_shape())
 
     # activation is linear by default
     logits = tf.layers.dense(
@@ -306,6 +305,11 @@ class FullyConnectedSCDecoder(Decoder):
         units=self.params['output_dim'],
         kernel_regularizer=regularizer,
         name='fully_connected',
+    )
+
+    logits = tf.reduce_mean(
+        input_tensor=logits,
+        axis=1
     )
 
     return {'logits': logits, 'outputs': [logits]}
