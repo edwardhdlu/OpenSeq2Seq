@@ -295,14 +295,10 @@ class FullyConnectedSCDecoder(Decoder):
     lengths = input_dict['encoder_output']['src_length']
     regularizer = self.params.get('regularizer', None)
 
-    print(inputs.get_shape())
-
     inputs = tf.layers.flatten(
         inputs=inputs,
         name='flatten'
     )
-
-    print(inputs.get_shape())
 
     # activation is linear by default
     logits = tf.layers.dense(

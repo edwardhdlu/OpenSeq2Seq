@@ -129,6 +129,9 @@ class SpeechCommandsDataLayer(DataLayer):
 
     assert image.shape == (audio_length, num_audio_features)
 
+    # add dummy dimension
+    image = np.expand_dims(image, 1)
+
     return image
 
   def parse_element(self, element):
