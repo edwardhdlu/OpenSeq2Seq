@@ -23,10 +23,10 @@ else:
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 50,
+    "num_epochs": 100,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 1,
+    "batch_size_per_gpu": 64,
     "iter_size": 1,
 
     "save_summaries_steps": 10000,
@@ -66,67 +66,102 @@ base_params = {
         "convnet_layers": [
             {
                 "type": "conv2d", "repeat": 1,
-                "kernel_size": [11,11], "stride": [2,2],
-                "num_channels": 64, "padding": "SAME",
+                "kernel_size": [11,1], "stride": [2,1],
+                "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 2,
-                "kernel_size": [11,11], "stride": [1,1],
-                "num_channels": 64, "padding": "SAME",
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [11,1], "stride": [1,1],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [11,1], "stride": [1,1],
+                "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 1,
-                "kernel_size": [13,13], "stride": [2,2],
-                "num_channels": 96, "padding": "SAME",
+                "kernel_size": [13,1], "stride": [2,1],
+                "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 2,
-                "kernel_size": [13,13], "stride": [1,1],
-                "num_channels": 96, "padding": "SAME",
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [13,1], "stride": [1,1],
+                "num_channels": 384, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [13,1], "stride": [1,1],
+                "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 1,
-                "kernel_size": [17,17], "stride": [2,2],
-                "num_channels": 128, "padding": "SAME",
+                "kernel_size": [17,1], "stride": [2,1],
+                "num_channels": 512, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 2,
-                "kernel_size": [17,17], "stride": [1,1],
-                "num_channels": 128, "padding": "SAME",
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [17,1], "stride": [1,1],
+                "num_channels": 512, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 2,
-                "kernel_size": [21,21], "stride": [1,1],
-                "num_channels": 160, "padding": "SAME",
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [17,1], "stride": [1,1],
+                "num_channels": 512, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [21,1], "stride": [1,1],
+                "num_channels": 640, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 2,
-                "kernel_size": [25,25], "stride": [1,1],
-                "num_channels": 192, "padding": "SAME",
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [21,1], "stride": [1,1],
+                "num_channels": 640, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [25,1], "stride": [1,1],
+                "num_channels": 768, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [25,1], "stride": [1,1],
+                "num_channels": 768, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 1,
-                "kernel_size": [29,29], "stride": [1,1],
-                "num_channels": 224, "padding": "SAME",
-                "dilation":[2,2], "dropout_keep_prob": 0.6,
+                "kernel_size": [29,1], "stride": [1,1],
+                "num_channels": 896, "padding": "SAME",
+                "dilation":[2,1], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv2d", "repeat": 1,
                 "kernel_size": [1,1], "stride": [1,1],
-                "num_channels": 256, "padding": "SAME",
+                "num_channels": 1024, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.6,
             }
         ],
@@ -152,6 +187,7 @@ base_params = {
     "data_layer_params": {
         "dataset_location": dataset_location,
         "num_audio_features": 128,
+        "audio_length": 128,
         "num_labels": num_labels,
         "cache_data": False,
         "augment_data": True
@@ -169,7 +205,7 @@ train_params = {
 }
 
 eval_params = {
-  # "batch_size_per_gpu": 4,
+  "batch_size_per_gpu": 4,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"

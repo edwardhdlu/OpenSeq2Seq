@@ -17,6 +17,7 @@ class SpeechCommandsDataLayer(DataLayer):
         "dataset_files": list,
         "dataset_location": str,
         "num_audio_features": int,
+        "audio_length": int,
         "num_labels": int
     })
 
@@ -106,17 +107,18 @@ class SpeechCommandsDataLayer(DataLayer):
   def preprocess_image(self, image):
     """Crops or pads a spectrogram into a fixed dimension square image
     """
-    dim = self.params["num_audio_features"]
+    num_audio_features = self.params["num_audio_features"]
+    audio_length = self.params["audio_length"]
 
-    if image.shape[0] > dim: # randomly slice to square
-      offset = np.random.randint(0, image.shape[0] - dim + 1)
-      image = image[offset:offset + dim, :]
+    if image.shape[0] > audio_length: # randomly slice
+      offset = np.random.randint(0, image.shape[0] - audio_length + 1)
+      image = image[offset:offset + audio_length, :]
 
-    else: # symmetrically pad with zeros to square
-      pad_left = (dim - image.shape[0]) // 2
-      pad_right = (dim - image.shape[0]) // 2
+    else: # symmetrically pad with zeros
+      pad_left = (audio_length - image.shape[0]) // 2
+      pad_right = (audio_length - image.shape[0]) // 2
 
-      if (dim - image.shape[0]) % 2 == 1:
+      if (audio_length - image.shape[0]) % 2 == 1:
         pad_right += 1
 
       image = np.pad(
@@ -125,10 +127,7 @@ class SpeechCommandsDataLayer(DataLayer):
           "constant"
       )
 
-    assert image.shape == (dim, dim)
-
-    # add dummy dimension as channels
-    image = np.expand_dims(image, -1)
+    assert image.shape == (audio_length, num_audio_features)
 
     return image
 
@@ -204,10 +203,10 @@ class SpeechCommandsDataLayer(DataLayer):
 
     inputs.set_shape([
         self.params["batch_size"], 
+        self.params["audio_length"],
+        1,
         self.params["num_audio_features"],
-        self.params["num_audio_features"],
-        1
-    ])
+    ]) # B T 1 C
     lengths.set_shape([self.params["batch_size"]])
     labels = tf.one_hot(labels, self.params["num_labels"])
     labels.set_shape([self.params["batch_size"], self.params["num_labels"]])
