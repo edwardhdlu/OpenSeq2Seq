@@ -140,7 +140,7 @@ base_params = {
             },
             {
                 "type": "conv2d", "repeat": 3,
-                "kernel_size": [25.25], "stride": [1,1],
+                "kernel_size": [25,25], "stride": [1,1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
@@ -188,7 +188,7 @@ base_params = {
         "dataset_location": dataset_location,
         "num_audio_features": 128,
         "num_labels": num_labels,
-        "cache_data": True,
+        "cache_data": False,
         "augment_data": True
     },
 }
