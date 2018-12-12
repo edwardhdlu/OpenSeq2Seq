@@ -10,7 +10,7 @@ import tensorflow as tf
 
 base_model = Image2Label
 
-dataset_version = "v1-12"
+dataset_version = "v1-30"
 dataset_location = "data/speech_commands_v0.01"
 
 if dataset_version == "v1-12":
@@ -23,10 +23,10 @@ else:
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
-  "num_gpus": 1,
+  "use_horovod": True,
+  "num_gpus": 8,
 
-  "num_epochs": 20,
+  "num_epochs": 100,
   "batch_size_per_gpu": 32,
   "dtype": tf.float32,
 
