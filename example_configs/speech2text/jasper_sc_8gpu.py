@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Image2Label
 
-dataset_version = "v1-30"
+dataset_version = "v1-12"
 dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
@@ -38,11 +38,11 @@ base_params = {
 
     "optimizer": "Momentum",
     "optimizer_params": {
-        "momentum": 0.90,
+        "momentum": 0.95,
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.01,
+        "learning_rate": 0.05,
         "min_lr": 1e-5,
         "power": 2.0,
     },
