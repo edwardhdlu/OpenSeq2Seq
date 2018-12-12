@@ -34,7 +34,7 @@ base_params = {
     "print_samples_steps": 1000,
     "eval_steps": 1000,
     "save_checkpoint_steps": 10000,
-    "logdir": "result/speech_commands_float",
+    "logdir": "result/speech_commands_mixed",
 
     "optimizer": "Momentum",
     "optimizer_params": {
@@ -55,8 +55,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": tf.float32,
-    # "loss_scaling": "Backoff",
+    "dtype": "mixed",
+    "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
