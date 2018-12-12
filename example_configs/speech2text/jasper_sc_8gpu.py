@@ -34,15 +34,15 @@ base_params = {
     "print_samples_steps": 1000,
     "eval_steps": 1000,
     "save_checkpoint_steps": 10000,
-    "logdir": "result/speech_commands_mixed",
+    "logdir": "result/speech_commands_float",
 
     "optimizer": "Momentum",
     "optimizer_params": {
-        "momentum": 0.95,
+        "momentum": 0.90,
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.05,
+        "learning_rate": 0.01,
         "min_lr": 1e-5,
         "power": 2.0,
     },
@@ -55,8 +55,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": "mixed",
-    "loss_scaling": "Backoff",
+    "dtype": tf.float32,
+    # "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -71,14 +71,14 @@ base_params = {
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [11,1], "stride": [1,1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [11,1], "stride": [1,1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
@@ -91,14 +91,14 @@ base_params = {
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [13,1], "stride": [1,1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [13,1], "stride": [1,1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
@@ -111,42 +111,42 @@ base_params = {
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [17,1], "stride": [1,1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [17,1], "stride": [1,1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [21,1], "stride": [1,1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [21,1], "stride": [1,1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [25,1], "stride": [1,1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv2d", "repeat": 3,
+                "type": "conv2d", "repeat": 5,
                 "kernel_size": [25,1], "stride": [1,1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
@@ -173,7 +173,7 @@ base_params = {
             'uniform': False,
         },
         "normalization": "batch_norm",
-        "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+        "activation_fn": tf.nn.relu,
         "data_format": "channels_last",
     },
 
