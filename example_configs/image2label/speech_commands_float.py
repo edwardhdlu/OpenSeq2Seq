@@ -58,7 +58,7 @@ base_params = {
   "encoder": ResNetEncoder,
   "encoder_params": {
     'resnet_size': 50,
-    "regularize_bn": False,
+    "regularize_bn": True,
   },
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
