@@ -11,7 +11,7 @@ import tensorflow as tf
 base_model = Image2Label
 
 dataset_version = "v1-30"
-dataset_location = "data/speech_commands_v0.01"
+dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
   num_labels = 12
@@ -19,7 +19,7 @@ elif dataset_version == "v1-30":
   num_labels = 30
 else: 
   num_labels = 35
-  dataset_location = "data/speech_commands_v0.02"
+  dataset_location = "/data/speech-commands/v2"
 
 base_params = {
   "random_seed": 0,
@@ -35,7 +35,7 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 200,
   "save_checkpoint_steps": 10000,
-  "logdir": "experiments/speech_commands_float",
+  "logdir": "result/speech_commands_float",
 
   "optimizer": "Momentum",
   "optimizer_params": {
