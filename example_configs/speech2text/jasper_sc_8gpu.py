@@ -55,8 +55,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": tf.float32,
-    # "loss_scaling": "Backoff",
+    "dtype": "mixed",
+    "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -67,66 +67,101 @@ base_params = {
             {
                 "type": "conv2d", "repeat": 1,
                 "kernel_size": [11,1], "stride": [2,1],
-                "num_channels": 64, "padding": "SAME",
+                "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv2d", "repeat": 3,
                 "kernel_size": [11,1], "stride": [1,1],
-                "num_channels": 64, "padding": "SAME",
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [11,1], "stride": [1,1],
+                "num_channels": 256, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 1,
                 "kernel_size": [13,1], "stride": [2,1],
-                "num_channels": 96, "padding": "SAME",
+                "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv2d", "repeat": 3,
                 "kernel_size": [13,1], "stride": [1,1],
-                "num_channels": 96, "padding": "SAME",
+                "num_channels": 384, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [13,1], "stride": [1,1],
+                "num_channels": 384, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 1,
                 "kernel_size": [17,1], "stride": [2,1],
-                "num_channels": 128, "padding": "SAME",
+                "num_channels": 512, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv2d", "repeat": 3,
                 "kernel_size": [17,1], "stride": [1,1],
-                "num_channels": 128, "padding": "SAME",
+                "num_channels": 512, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [17,1], "stride": [1,1],
+                "num_channels": 512, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 3,
                 "kernel_size": [21,1], "stride": [1,1],
-                "num_channels": 160, "padding": "SAME",
+                "num_channels": 640, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [21,1], "stride": [1,1],
+                "num_channels": 640, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 3,
                 "kernel_size": [25,1], "stride": [1,1],
-                "num_channels": 192, "padding": "SAME",
+                "num_channels": 768, "padding": "SAME",
+                "dilation":[1,1], "dropout_keep_prob": 0.7,
+                "residual": True
+            },
+            {
+                "type": "conv2d", "repeat": 3,
+                "kernel_size": [25,1], "stride": [1,1],
+                "num_channels": 768, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv2d", "repeat": 1,
                 "kernel_size": [29,1], "stride": [1,1],
-                "num_channels": 224, "padding": "SAME",
+                "num_channels": 896, "padding": "SAME",
                 "dilation":[2,1], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv2d", "repeat": 1,
                 "kernel_size": [1,1], "stride": [1,1],
-                "num_channels": 256, "padding": "SAME",
+                "num_channels": 1024, "padding": "SAME",
                 "dilation":[1,1], "dropout_keep_prob": 0.6,
             }
         ],
@@ -151,7 +186,7 @@ base_params = {
     "data_layer": SpeechCommandsDataLayer,
     "data_layer_params": {
         "dataset_location": dataset_location,
-        "num_audio_features": 80,
+        "num_audio_features": 128,
         "audio_length": 128,
         "num_labels": num_labels,
         "cache_data": True,
