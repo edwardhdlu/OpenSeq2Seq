@@ -3,7 +3,7 @@ import tensorflow as tf
 from open_seq2seq.models import Image2Label
 from open_seq2seq.encoders import TDNNEncoder
 from open_seq2seq.decoders import FullyConnectedSCDecoder
-from open_seq2seq.data.speech2text.speech_commands import SpeechCommandsDataLayer
+from open_seq2seq.data import SpeechCommandsDataLayer
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
@@ -189,7 +189,7 @@ base_params = {
         "num_audio_features": 128,
         "audio_length": 128,
         "num_labels": num_labels,
-        "cache_data": True,
+        "cache_data": False,
         "augment_data": True,
         "model_format": "jasper"
     },
