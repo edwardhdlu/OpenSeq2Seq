@@ -68,11 +68,16 @@ class SpeechCommandsDataLayer(DataLayer):
     * **dataset_location** (str) --- string with path to directory where .wavs
       are stored
     * **num_audio_features** (int) --- number of spectrogram audio features and 
-      image dimension
+      image length
+    * **audio_length** (int) --- cropping length of spectrogram and image width
     * **num_labels** (int) --- number of classes in dataset
+    * **model_format** (str) --- determines input format, should be one of
+      "jasper" or "resnet"
     
     * **cache_data** (bool) --- cache the training data in the first epoch
     * **augment_data** (bool) --- add time stretch and noise to training data
+    * **repeat_samples** (int) --- number of times to repeat training samples
+      before caching
     """
 
     super(SpeechCommandsDataLayer, self).__init__(params, model, num_workers, worker_id)
@@ -229,7 +234,7 @@ class SpeechCommandsDataLayer(DataLayer):
           self.params["num_audio_features"], 
           self.params["num_audio_features"], 
           1
-      ])
+      ]) # B W L C
       source_tensors = [inputs]
     
     labels = tf.one_hot(labels, self.params["num_labels"])
