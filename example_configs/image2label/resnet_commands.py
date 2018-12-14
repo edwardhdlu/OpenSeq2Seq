@@ -72,7 +72,7 @@ base_params = {
     "num_audio_features": 120,
     "audio_length": 120,
     "num_labels": num_labels,
-    "cache_data": False,
+    "cache_data": True,
     "augment_data": True,
     "model_format": "resnet"
   },

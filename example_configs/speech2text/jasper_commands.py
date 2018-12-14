@@ -189,7 +189,7 @@ base_params = {
         "num_audio_features": 128,
         "audio_length": 128,
         "num_labels": num_labels,
-        "cache_data": False,
+        "cache_data": True,
         "augment_data": True,
         "model_format": "jasper"
     },
