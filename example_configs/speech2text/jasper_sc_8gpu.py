@@ -201,7 +201,7 @@ train_params = {
     ],
     "shuffle": True,
     "repeat": True,
-    "repeat_samples": 9
+    "repeat_samples": 4
   },
 }
 
