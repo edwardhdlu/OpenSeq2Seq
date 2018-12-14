@@ -189,7 +189,7 @@ base_params = {
         "num_audio_features": 128,
         "audio_length": 128,
         "num_labels": num_labels,
-        "cache_data": True,
+        "cache_data": False,
         "augment_data": True
     },
 }
@@ -201,7 +201,7 @@ train_params = {
     ],
     "shuffle": True,
     "repeat": True,
-    "repeat_samples": 9
+    "repeat_samples": 19
   },
 }
 
