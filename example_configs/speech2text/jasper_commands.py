@@ -10,7 +10,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_model = Image2Label
 
 dataset_version = "v1-12"
-dataset_location = "/data/speech-commands/v1"
+dataset_location = "data/speech_commands_v0.01"
 
 if dataset_version == "v1-12":
   num_labels = 12
@@ -18,23 +18,23 @@ elif dataset_version == "v1-30":
   num_labels = 30
 else: 
   num_labels = 35
-  dataset_location = "/data/speech-commands/v2"
+  dataset_location = "data/speech_commands_v0.02"
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": True,
-    "num_epochs": 100,
+    "use_horovod": False,
+    "num_epochs": 20,
 
-    "num_gpus": 8,
+    "num_gpus": 1,
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
     "save_summaries_steps": 10000,
-    "print_loss_steps": 100,
+    "print_loss_steps": 10,
     "print_samples_steps": 1000,
-    "eval_steps": 1000,
+    "eval_steps": 100,
     "save_checkpoint_steps": 10000,
-    "logdir": "result/speech_commands_float",
+    "logdir": "result/jasper_commands",
 
     "optimizer": "Momentum",
     "optimizer_params": {
@@ -189,8 +189,9 @@ base_params = {
         "num_audio_features": 128,
         "audio_length": 128,
         "num_labels": num_labels,
-        "cache_data": False,
-        "augment_data": True
+        "cache_data": True,
+        "augment_data": True,
+        "model_format": "jasper"
     },
 }
 
@@ -201,12 +202,12 @@ train_params = {
     ],
     "shuffle": True,
     "repeat": True,
-    "repeat_samples": 19
+    "repeat_samples": 1
   },
 }
 
 eval_params = {
-  "batch_size_per_gpu": 4,
+  "batch_size_per_gpu": 16,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"

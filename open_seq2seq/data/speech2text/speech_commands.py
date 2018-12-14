@@ -18,7 +18,8 @@ class SpeechCommandsDataLayer(DataLayer):
         "dataset_location": str,
         "num_audio_features": int,
         "audio_length": int,
-        "num_labels": int
+        "num_labels": int,
+        "model_format": str
     })
 
   @staticmethod
@@ -135,7 +136,10 @@ class SpeechCommandsDataLayer(DataLayer):
     assert image.shape == (audio_length, num_audio_features)
 
     # add dummy dimension
-    image = np.expand_dims(image, 1)
+    if self.params["model_format"] == "jasper": # for batch norm
+      image = np.expand_dims(image, 1)
+    else: # for channel
+      image = np.expand_dims(image, -1)
 
     return image
 
@@ -156,6 +160,7 @@ class SpeechCommandsDataLayer(DataLayer):
 
     if self.params["mode"] == "train" and self.params.get("augment_data", False):
       augmentation = { 
+        "pitch_shift_steps": 2,
         "time_stretch_ratio": 0.2,
         "noise_level_min": -90,
         "noise_level_max": -46,
@@ -209,17 +214,28 @@ class SpeechCommandsDataLayer(DataLayer):
     self._iterator = dataset.make_initializable_iterator()
     inputs, lengths, labels = self._iterator.get_next()
 
-    inputs.set_shape([
-        self.params["batch_size"], 
-        self.params["audio_length"],
-        1,
-        self.params["num_audio_features"],
-    ]) # B T 1 C
-    lengths.set_shape([self.params["batch_size"]])
+    if self.params["model_format"] == "jasper": 
+      inputs.set_shape([
+          self.params["batch_size"], 
+          self.params["audio_length"],
+          1,
+          self.params["num_audio_features"],
+      ]) # B T 1 C
+      lengths.set_shape([self.params["batch_size"]])
+      source_tensors = [inputs, lengths]
+    else:
+      inputs.set_shape([
+          self.params["batch_size"], 
+          self.params["num_audio_features"], 
+          self.params["num_audio_features"], 
+          1
+      ])
+      source_tensors = [inputs]
+    
     labels = tf.one_hot(labels, self.params["num_labels"])
     labels.set_shape([self.params["batch_size"], self.params["num_labels"]])
 
     self._input_tensors = {
-        "source_tensors": [inputs, lengths],
+        "source_tensors": source_tensors,
         "target_tensors": [labels]
     }

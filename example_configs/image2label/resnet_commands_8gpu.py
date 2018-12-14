@@ -11,7 +11,7 @@ import tensorflow as tf
 base_model = Image2Label
 
 dataset_version = "v1-12"
-dataset_location = "data/speech_commands_v0.01"
+dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
   num_labels = 12
@@ -19,24 +19,24 @@ elif dataset_version == "v1-30":
   num_labels = 30
 else: 
   num_labels = 35
-  dataset_location = "data/speech_commands_v0.02"
+  dataset_location = "/data/speech-commands/v2"
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
-  "num_gpus": 1,
+  "use_horovod": True,
+  "num_gpus": 8,
 
-  "num_epochs": 20,
+  "num_epochs": 100,
   "batch_size_per_gpu": 32,
   "dtype": "mixed",
   "loss_scaling": 512.0,
 
-  "save_summaries_steps": 1000,
-  "print_loss_steps": 10,
-  "print_samples_steps": 10000,
-  "eval_steps": 200,
+  "save_summaries_steps": 10000,
+  "print_loss_steps": 100,
+  "print_samples_steps": 1000,
+  "eval_steps": 1000,
   "save_checkpoint_steps": 10000,
-  "logdir": "experiments/speech_commands_float",
+  "logdir": "result/resnet_commands",
 
   "optimizer": "Momentum",
   "optimizer_params": {
@@ -72,7 +72,8 @@ base_params = {
     "num_audio_features": 120,
     "num_labels": num_labels,
     "cache_data": True,
-    "augment_data": True
+    "augment_data": True,
+    "model_format": "resnet"
   },
 }
 
@@ -82,7 +83,8 @@ train_params = {
       dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True
+    "repeat": True,
+    "repeat_samples": 1
   },
 }
 

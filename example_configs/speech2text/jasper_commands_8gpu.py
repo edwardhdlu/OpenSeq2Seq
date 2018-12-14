@@ -9,8 +9,8 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Image2Label
 
-dataset_version = "v1-30"
-dataset_location = "data/speech_commands_v0.01"
+dataset_version = "v1-12"
+dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
   num_labels = 12
@@ -18,31 +18,31 @@ elif dataset_version == "v1-30":
   num_labels = 30
 else: 
   num_labels = 35
-  dataset_location = "data/speech_commands_v0.02"
+  dataset_location = "/data/speech-commands/v2"
 
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 20,
+    "num_epochs": 100,
 
-    "num_gpus": 1,
+    "num_gpus": 8,
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 5000,
-    "print_loss_steps": 10,
-    "print_samples_steps": 500,
-    "eval_steps": 100,
-    "save_checkpoint_steps": 5000,
-    "logdir": "result_jasper/speech_commands_float",
+    "save_summaries_steps": 10000,
+    "print_loss_steps": 100,
+    "print_samples_steps": 1000,
+    "eval_steps": 1000,
+    "save_checkpoint_steps": 10000,
+    "logdir": "result/jasper_commands",
 
     "optimizer": "Momentum",
     "optimizer_params": {
-        "momentum": 0.90,
+        "momentum": 0.95,
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.01,
+        "learning_rate": 0.05,
         "min_lr": 1e-5,
         "power": 2.0,
     },
@@ -55,8 +55,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": tf.float32,
-    # "loss_scaling": "Backoff",
+    "dtype": "mixed",
+    "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -173,7 +173,7 @@ base_params = {
             'uniform': False,
         },
         "normalization": "batch_norm",
-        "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+        "activation_fn": tf.nn.relu,
         "data_format": "channels_last",
     },
 
@@ -190,7 +190,8 @@ base_params = {
         "audio_length": 128,
         "num_labels": num_labels,
         "cache_data": True,
-        "augment_data": True
+        "augment_data": True,
+        "model_format": "jasper"
     },
 }
 
@@ -200,12 +201,13 @@ train_params = {
       dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True
+    "repeat": True,
+    "repeat_samples": 1
   },
 }
 
 eval_params = {
-  "batch_size_per_gpu": 16,
+  "batch_size_per_gpu": 4,
   "data_layer_params": {
     "dataset_files": [
       dataset_version + "-val.txt"
