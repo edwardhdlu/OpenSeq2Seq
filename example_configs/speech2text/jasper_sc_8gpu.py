@@ -200,7 +200,8 @@ train_params = {
       dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True
+    "repeat": True,
+    "repeat_samples": 4
   },
 }
 

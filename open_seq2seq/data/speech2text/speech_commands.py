@@ -25,7 +25,8 @@ class SpeechCommandsDataLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
         "cache_data": bool,
-        "augment_data": bool
+        "augment_data": bool,
+        "repeat_samples": int
     })
 
   def split_data(self, data):
@@ -99,6 +100,10 @@ class SpeechCommandsDataLayer(DataLayer):
     if self._files is not None:
       all_files = self._files.loc[:, cols].values
       self._files = self.split_data(all_files)
+
+    copy = self._files
+    for i in range(self.params.get("repeat_samples", 0)):
+      self._files = np.append(self._files, copy, axis=0)
 
     self._size = self.get_size_in_samples()
     self._iterator = None
