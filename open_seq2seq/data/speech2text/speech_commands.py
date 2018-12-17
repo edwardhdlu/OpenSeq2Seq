@@ -165,7 +165,6 @@ class SpeechCommandsDataLayer(DataLayer):
 
     if self.params["mode"] == "train" and self.params.get("augment_data", False):
       augmentation = { 
-        "pitch_shift_steps": 2,
         "time_stretch_ratio": 0.2,
         "noise_level_min": -90,
         "noise_level_max": -46,
