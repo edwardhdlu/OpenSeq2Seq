@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Image2Label
 
-dataset_version = "v1-12"
+dataset_version = "v2"
 dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
@@ -23,7 +23,7 @@ else:
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 100,
+    "num_epochs": 200,
 
     "num_gpus": 8,
     "batch_size_per_gpu": 64,
@@ -55,8 +55,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": tf.float32,
-    # "loss_scaling": "Backoff",
+    "dtype": "mixed",
+    "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],

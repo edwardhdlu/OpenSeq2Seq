@@ -10,7 +10,7 @@ import tensorflow as tf
 
 base_model = Image2Label
 
-dataset_version = "v1-12"
+dataset_version = "v2"
 dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
@@ -26,10 +26,10 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8,
 
-  "num_epochs": 100,
+  "num_epochs": 200,
   "batch_size_per_gpu": 32,
-  "dtype": tf.float32,
-  # "loss_scaling": 512.0,
+  "dtype": "mixed",
+  "loss_scaling": 512.0,
 
   "save_summaries_steps": 10000,
   "print_loss_steps": 100,
