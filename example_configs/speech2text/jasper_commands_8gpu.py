@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Image2Label
 
-dataset_version = "v2"
+dataset_version = "v1-12"
 dataset_location = "/data/speech-commands/v1"
 
 if dataset_version == "v1-12":
@@ -201,7 +201,7 @@ train_params = {
       dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True,
+    "repeat": True
   },
 }
 
