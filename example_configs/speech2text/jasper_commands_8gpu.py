@@ -23,7 +23,7 @@ else:
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 200,
+    "num_epochs": 10,
 
     "num_gpus": 8,
     "batch_size_per_gpu": 64,
@@ -55,8 +55,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": "mixed",
-    "loss_scaling": "Backoff",
+    "dtype": tf.float32,
+    # "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],

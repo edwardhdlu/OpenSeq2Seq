@@ -26,10 +26,10 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8,
 
-  "num_epochs": 100,
+  "num_epochs": 10,
   "batch_size_per_gpu": 32,
-  "dtype": "mixed",
-  "loss_scaling": 512.0,
+  "dtype": tf.float32,
+  # "loss_scaling": 512.0,
 
   "save_summaries_steps": 10000,
   "print_loss_steps": 100,
